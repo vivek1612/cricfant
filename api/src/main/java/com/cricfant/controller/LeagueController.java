@@ -7,6 +7,7 @@ import com.cricfant.service.LeagueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,9 +44,9 @@ public class LeagueController {
     @PostMapping("/{leagueId}/join")
     public ResponseEntity<?> joinLeague(@PathVariable Integer leagueId,
                                         @RequestParam Integer squadId,
-                                        @AuthenticationPrincipal User user) {
-//        user = userRepository.getOne(user.getId());
-        user = userRepository.findByEmail("vivek.1612@gmail.com");
+                                        @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername()).get();
+//        user = userRepository.findByEmail("vivek.1612@gmail.com");
         leagueService.join(leagueId, squadId, user.getId());
         return ResponseEntity.ok("joined league");
     }

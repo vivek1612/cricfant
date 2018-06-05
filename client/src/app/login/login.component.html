@@ -70,11 +70,12 @@
               </td>
             </tr>
           </table>
+          <mat-error *ngIf="error">{{error}}</mat-error>
         </form>
         <mat-spinner [style.display]="loggingIn ? 'block' : 'none'"></mat-spinner>
       </mat-card-content>
       <mat-card-actions>
-        <button class="signUpBtn" mat-raised-button [disabled]="!singUpForm.form.valid" (click)="signup()"
+        <button class="signUpBtn" mat-raised-button [disabled]="!singUpForm.form.valid" (click)="signUp()"
                 color="primary" type="submit" form="signUpForm">
           Sign Up
         </button>

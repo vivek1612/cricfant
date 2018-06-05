@@ -27,21 +27,38 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     console.log('login init');
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-    if ( this.authService.isLoggedIn() ) {
+    if (this.authService.isLoggedIn()) {
       this.router.navigateByUrl(this.returnUrl);
     }
   }
 
-  signup() {
+  signUp() {
     this.loggingIn = true;
-    this.authService.signup(this.email, this.password).then(r => {
+    this.authService.signUp(this.email, this.password, this.name).then(r => {
       this.loginForm.resetForm();
       this.loggingIn = false;
+      this.router.navigateByUrl(this.returnUrl);
     }).catch(e => {
       console.log(e);
       this.loggingIn = false;
+      const err = e.code ? e.code : e.error;
+      switch (err) {
+        case 'auth/invalid-email':
+          this.error = 'Invalid Email';
+          break;
+        case 'auth/email-already-in-use':
+        case 'email already exists':
+          this.error = 'Email in Use';
+          break;
+        case 'auth/weak-password':
+          this.error = 'Password Too Weak';
+          break;
+        default:
+          this.error = 'Unknown Error';
+          this.authService.logout();
+          break;
+      }
     });
-    this.email = this.password = '';
   }
 
   login() {
@@ -55,8 +72,8 @@ export class LoginComponent implements OnInit {
     }).catch(e => {
       console.log(e);
       this.loggingIn = false;
-      const code = e.code;
-      switch (code) {
+      const err = e.code ? e.code : e.error;
+      switch (err) {
         case 'auth/invalid-email':
           this.error = 'Invalid Email';
           break;
@@ -85,17 +102,6 @@ export class LoginComponent implements OnInit {
     this.authService.loginWithGoogle().then(r => {
       this.loggingIn = false;
       this.loginForm.resetForm();
-    }).catch(e => {
-      console.log(e);
-      this.loggingIn = false;
-    });
-  }
-
-  logout() {
-    this.loggingIn = true;
-    this.authService.logout().then(r => {
-      console.log('logged out');
-      this.loggingIn = false;
     }).catch(e => {
       console.log(e);
       this.loggingIn = false;

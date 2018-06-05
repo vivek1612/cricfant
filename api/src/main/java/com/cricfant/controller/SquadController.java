@@ -30,7 +30,7 @@ public class SquadController {
 
     @GetMapping
     public ResponseEntity<?> readSquads(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByUid(userDetails.getUsername()).get();
+        User user = userRepository.findByEmail(userDetails.getUsername()).get();
 //        user = userRepository.findByEmail("vivek.1612@gmail.com");
         List<SquadDto> squads = squadService.getSquads(user.getId());
         return ResponseEntity.ok(squads);
@@ -40,7 +40,7 @@ public class SquadController {
     public ResponseEntity<?> setSquad(@AuthenticationPrincipal UserDetails userDetails,
                                       @PathVariable("squadId") Integer squadId,
                                       @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByUid(userDetails.getUsername()).get();
+        User user = userRepository.findByEmail(userDetails.getUsername()).get();
 //        User user = userRepository.findByEmail("vivek.1612@gmail.com");
         SquadDto dto = squadService.setSquad(squadId, squadDto, user.getId());
         return ResponseEntity.ok(dto);
@@ -49,7 +49,7 @@ public class SquadController {
     @PostMapping
     public ResponseEntity<?> createSquad(@AuthenticationPrincipal UserDetails userDetails,
                                          @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByUid(userDetails.getUsername()).get();
+        User user = userRepository.findByEmail(userDetails.getUsername()).get();
 //        User user = userRepository.findByEmail("vivek.1612@gmail.com");
         SquadDto dto = squadService.createSquad(user.getId(), squadDto);
         return ResponseEntity.ok(dto);
@@ -58,7 +58,7 @@ public class SquadController {
     @GetMapping("/{squadId}")
     public ResponseEntity<?> readSquad(@AuthenticationPrincipal UserDetails userDetails,
                                        @PathVariable Integer squadId) {
-        User user = userRepository.findByUid(userDetails.getUsername()).get();
+        User user = userRepository.findByEmail(userDetails.getUsername()).get();
 //        User user = userRepository.findByEmail("vivek.1612@gmail.com");
         SquadDto s = squadService.getSquad(squadId, user.getId());
         return ResponseEntity.ok(s);

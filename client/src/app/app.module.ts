@@ -20,6 +20,7 @@ import {AuthInterceptorService} from './auth/auth-interceptor.service';
 import {AuthGuard} from './auth/auth.guard';
 import { AccountOpsComponent } from './account-ops/account-ops.component';
 import { HomeComponent } from './home/home.component';
+import {AuthService} from "./auth/auth.service";
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { HomeComponent } from './home/home.component';
       useClass: AuthInterceptorService,
       multi: true
     },
+    AuthService,
     {provide: 'BASE_URL', useValue: 'http://localhost:8080'}],
   bootstrap: [AppComponent]
 })

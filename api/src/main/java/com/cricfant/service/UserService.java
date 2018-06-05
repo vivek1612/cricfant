@@ -1,8 +1,10 @@
 package com.cricfant.service;
 
 import com.cricfant.constant.Role;
+import com.cricfant.dto.UserDto;
 import com.cricfant.model.User;
 import com.cricfant.repository.UserRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -23,19 +27,31 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-        User user = userRepository.findByUid(s).orElseThrow(
+        User user = userRepository.findByEmail(s).orElseThrow(
                 () -> new UsernameNotFoundException("username ["+s+"] not found"));
         return getUserDetails(user);
     }
 
-    public UserDetails createUser(String uid, String name, String email, Role role) {
+    public UserDto signUp(UserDto dto) {
+        if(userRepository.existsByEmail(dto.getEmail())){
+            throw new IllegalArgumentException("email already exists");
+        }
         User u = new User();
-        u.setUid(uid);
-        u.setName(name);
-        u.setEmail(email);
-        u.setRole(role);
+        u.setName(dto.getName());
+        u.setEmail(dto.getEmail());
+        u.setRole(Role.ROLE_USER);
         User save = userRepository.save(u);
-        return getUserDetails(save);
+        return getUserDto(save);
+    }
+
+    private UserDto getUserDto(User user){
+        UserDto dto = new UserDto();
+        /*dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setName(user.getName());
+        dto.setRole(user.getRole());*/
+        BeanUtils.copyProperties(user,dto);
+        return dto;
     }
 
     private UserDetails getUserDetails(User user) {
@@ -53,29 +69,35 @@ public class UserService implements UserDetailsService {
 
             @Override
             public String getUsername() {
-                return user.getUid();
+                return user.getEmail();
             }
 
             @Override
             public boolean isAccountNonExpired() {
-                return false;
+                return true;
             }
 
             @Override
             public boolean isAccountNonLocked() {
-                return false;
+                return true;
             }
 
             @Override
             public boolean isCredentialsNonExpired() {
-                return false;
+                return true;
             }
 
             @Override
             public boolean isEnabled() {
-                return false;
+                return true;
             }
         };
         return userDetails;
+    }
+
+    public UserDto getUserProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("no such user"));
+        return getUserDto(user);
     }
 }
