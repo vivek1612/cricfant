@@ -1,0 +1,15 @@
+<button mat-raised-button *ngIf="!(authService.user$ | async)" (click)="login()"
+color="secondary">
+  Login
+</button>
+<button mat-button [matMenuTriggerFor]="accountMenu" *ngIf="authService.user$ | async" >
+  <mat-icon (click)="logout()">account_circle</mat-icon>
+</button>
+<mat-menu #accountMenu="matMenu">
+  <button mat-menu-item>
+    Change Password
+  </button>
+  <button mat-menu-item (click)="logout()">
+    Logout
+  </button>
+</mat-menu>

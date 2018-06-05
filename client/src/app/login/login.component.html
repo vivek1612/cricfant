@@ -1,0 +1,84 @@
+<mat-tab-group [dynamicHeight]="true" class="example-tab-group">
+  <mat-tab label="Login">
+    <mat-card class="example-card">
+      <mat-card-content>
+        <form class="example-form" (ngSubmit)="login()" id="loginForm"
+              #loginForm="ngForm">
+          <table class="example-full-width" cellspacing="0">
+            <tr>
+              <td>
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="Email"
+                         [(ngModel)]="email" name="email" required>
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="Password"
+                         [(ngModel)]="password" type="password"
+                         name="password" required>
+                </mat-form-field>
+              </td>
+            </tr>
+          </table>
+          <mat-error *ngIf="error">{{error}}</mat-error>
+        </form>
+        <mat-spinner [style.display]="loggingIn ? 'block' : 'none'"></mat-spinner>
+      </mat-card-content>
+      <mat-card-actions>
+        <button class="loginBtn" mat-raised-button [disabled]="!loginForm.form.valid"
+                type="submit" form="loginForm" color="primary">
+          Login
+        </button>
+        <button (click)="loginWithGoogle()" class="loginBtn-google">
+          Login with Google
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </mat-tab>
+  <mat-tab label="Sign Up">
+    <mat-card class="example-card">
+      <mat-card-content>
+        <form class="example-form" #singUpForm="ngForm" id="signUpForm">
+          <table class="example-full-width" cellspacing="0">
+            <tr>
+              <td>
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="Name"
+                         [(ngModel)]="name" name="name" required>
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="Email"
+                         [(ngModel)]="email" name="email" required>
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <mat-form-field class="example-full-width">
+                  <input matInput placeholder="Password"
+                         [(ngModel)]="password" type="password"
+                         name="password" required minlength="6">
+                  <mat-hint align="end">Min 6 chars</mat-hint>
+                </mat-form-field>
+              </td>
+            </tr>
+          </table>
+        </form>
+        <mat-spinner [style.display]="loggingIn ? 'block' : 'none'"></mat-spinner>
+      </mat-card-content>
+      <mat-card-actions>
+        <button class="signUpBtn" mat-raised-button [disabled]="!singUpForm.form.valid" (click)="signup()"
+                color="primary" type="submit" form="signUpForm">
+          Sign Up
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </mat-tab>
+</mat-tab-group>
