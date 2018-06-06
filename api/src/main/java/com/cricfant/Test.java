@@ -5,6 +5,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.net.URL;
@@ -34,7 +38,7 @@ public class Test {
 
 
     public static void main(String[] args) throws IOException, SQLException, ParseException {
-        Map<String,Integer> links = new HashMap<>();
+        /*Map<String,Integer> links = new HashMap<>();
         links.put("http://www.espncricinfo.com/ci/content/squad/1134853.html",7);
         links.put("http://www.espncricinfo.com/ci/content/squad/1134858.html",6);
         links.put("http://www.espncricinfo.com/ci/content/squad/1134852.html",4);
@@ -49,8 +53,9 @@ public class Test {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
-
+        });*/
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        System.out.println(encoder.encode("XY7kmzoNzl100"));
     }
 
     public static void getMatches(String url) throws IOException, ParseException, SQLException {

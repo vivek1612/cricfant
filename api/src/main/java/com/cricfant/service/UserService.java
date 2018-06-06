@@ -13,12 +13,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-@Service
+@Service("appUserService")
 @Transactional
 public class UserService implements UserDetailsService {
 
@@ -28,12 +27,12 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(s).orElseThrow(
-                () -> new UsernameNotFoundException("username ["+s+"] not found"));
+                () -> new UsernameNotFoundException("username [" + s + "] not found"));
         return getUserDetails(user);
     }
 
     public UserDto signUp(UserDto dto) {
-        if(userRepository.existsByEmail(dto.getEmail())){
+        if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("email already exists");
         }
         User u = new User();
@@ -44,13 +43,9 @@ public class UserService implements UserDetailsService {
         return getUserDto(save);
     }
 
-    private UserDto getUserDto(User user){
+    private UserDto getUserDto(User user) {
         UserDto dto = new UserDto();
-        /*dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setName(user.getName());
-        dto.setRole(user.getRole());*/
-        BeanUtils.copyProperties(user,dto);
+        BeanUtils.copyProperties(user, dto);
         return dto;
     }
 
@@ -64,7 +59,7 @@ public class UserService implements UserDetailsService {
 
             @Override
             public String getPassword() {
-                return null;
+                return user.getPassword();
             }
 
             @Override
