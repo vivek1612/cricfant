@@ -9,7 +9,6 @@ import com.cricfant.service.SquadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,37 +28,33 @@ public class SquadController {
     MatchService matchService;
 
     @GetMapping
-    public ResponseEntity<?> readSquads(@AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByEmail(userDetails.getUsername()).get();
-//        user = userRepository.findByEmail("vivek.1612@gmail.com");
+    public ResponseEntity<?> readSquads(@AuthenticationPrincipal String principal) {
+        User user = userRepository.findByEmail(principal).get();
         List<SquadDto> squads = squadService.getSquads(user.getId());
         return ResponseEntity.ok(squads);
     }
 
     @PostMapping("/{squadId}")
-    public ResponseEntity<?> setSquad(@AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<?> setSquad(@AuthenticationPrincipal String principal,
                                       @PathVariable("squadId") Integer squadId,
                                       @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByEmail(userDetails.getUsername()).get();
-//        User user = userRepository.findByEmail("vivek.1612@gmail.com");
+        User user = userRepository.findByEmail(principal).get();
         SquadDto dto = squadService.setSquad(squadId, squadDto, user.getId());
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<?> createSquad(@AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<?> createSquad(@AuthenticationPrincipal String principal,
                                          @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByEmail(userDetails.getUsername()).get();
-//        User user = userRepository.findByEmail("vivek.1612@gmail.com");
+        User user = userRepository.findByEmail(principal).get();
         SquadDto dto = squadService.createSquad(user.getId(), squadDto);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{squadId}")
-    public ResponseEntity<?> readSquad(@AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<?> readSquad(@AuthenticationPrincipal String principal,
                                        @PathVariable Integer squadId) {
-        User user = userRepository.findByEmail(userDetails.getUsername()).get();
-//        User user = userRepository.findByEmail("vivek.1612@gmail.com");
+        User user = userRepository.findByEmail(principal).get();
         SquadDto s = squadService.getSquad(squadId, user.getId());
         return ResponseEntity.ok(s);
     }
