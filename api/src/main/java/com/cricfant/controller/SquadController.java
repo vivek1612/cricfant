@@ -1,5 +1,6 @@
 package com.cricfant.controller;
 
+import com.cricfant.dto.CustomPrincipal;
 import com.cricfant.dto.SquadDto;
 import com.cricfant.model.User;
 import com.cricfant.repository.SquadRepository;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @SuppressWarnings("Duplicates")
 @RestController
-@RequestMapping("/squad")
+@RequestMapping("/api/squads")
 public class SquadController {
 
     @Autowired
@@ -28,39 +29,39 @@ public class SquadController {
     MatchService matchService;
 
     @GetMapping
-    public ResponseEntity<?> readSquads(@AuthenticationPrincipal String principal) {
-        User user = userRepository.findByEmail(principal).get();
+    public ResponseEntity<?> readSquads(@AuthenticationPrincipal CustomPrincipal principal) {
+        User user = userRepository.findById(principal.getId()).get();
         List<SquadDto> squads = squadService.getSquads(user.getId());
         return ResponseEntity.ok(squads);
     }
 
-    @PostMapping("/{squadId}")
-    public ResponseEntity<?> setSquad(@AuthenticationPrincipal String principal,
+    @PutMapping("/{squadId}")
+    public ResponseEntity<?> setSquad(@AuthenticationPrincipal CustomPrincipal principal,
                                       @PathVariable("squadId") Integer squadId,
                                       @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByEmail(principal).get();
+        User user = userRepository.findById(principal.getId()).get();
         SquadDto dto = squadService.setSquad(squadId, squadDto, user.getId());
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<?> createSquad(@AuthenticationPrincipal String principal,
+    public ResponseEntity<?> createSquad(@AuthenticationPrincipal CustomPrincipal principal,
                                          @RequestBody SquadDto squadDto) {
-        User user = userRepository.findByEmail(principal).get();
+        User user = userRepository.findById(principal.getId()).get();
         SquadDto dto = squadService.createSquad(user.getId(), squadDto);
         return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{squadId}")
-    public ResponseEntity<?> readSquad(@AuthenticationPrincipal String principal,
+    public ResponseEntity<?> readSquad(@AuthenticationPrincipal CustomPrincipal principal,
                                        @PathVariable Integer squadId) {
-        User user = userRepository.findByEmail(principal).get();
+        User user = userRepository.findById(principal.getId()).get();
         SquadDto s = squadService.getSquad(squadId, user.getId());
         return ResponseEntity.ok(s);
     }
 
-    @GetMapping("/{squadId}/getSquadHistory")
-    public ResponseEntity<?> getSquadHistory(@RequestParam Integer matchId,
+    @GetMapping("/{squadId}/history/{matchId}")
+    public ResponseEntity<?> getSquadHistory(@PathVariable Integer matchId,
                                              @PathVariable Integer squadId) {
         SquadDto squadDto = squadService.getSquadHistory(matchId, squadId);
         return ResponseEntity.ok(squadDto);

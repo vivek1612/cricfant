@@ -7,7 +7,6 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Data
 public class Lockin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +30,76 @@ public class Lockin {
     @JsonBackReference("playerPowerType_lockins")
     @Enumerated(EnumType.STRING)
     private PowerType powerType;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getBattingPoints() {
+        return battingPoints;
+    }
+
+    public void setBattingPoints(Integer battingPoints) {
+        this.battingPoints = battingPoints;
+    }
+
+    public Integer getBowlingPoints() {
+        return bowlingPoints;
+    }
+
+    public void setBowlingPoints(Integer bowlingPoints) {
+        this.bowlingPoints = bowlingPoints;
+    }
+
+    public Integer getFieldingPoints() {
+        return fieldingPoints;
+    }
+
+    public void setFieldingPoints(Integer fieldingPoints) {
+        this.fieldingPoints = fieldingPoints;
+    }
+
+    public Integer getBonusPoints() {
+        return bonusPoints;
+    }
+
+    public void setBonusPoints(Integer bonusPoints) {
+        this.bonusPoints = bonusPoints;
+    }
+
+    public Squad getSquad() {
+        return squad;
+    }
+
+    public void setSquad(Squad squad) {
+        this.squad = squad;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public Match getMatch() {
+        return match;
+    }
+
+    public void setMatch(Match match) {
+        this.match = match;
+    }
+
+    public PowerType getPowerType() {
+        return powerType;
+    }
+
+    public void setPowerType(PowerType powerType) {
+        this.powerType = powerType;
+    }
 }

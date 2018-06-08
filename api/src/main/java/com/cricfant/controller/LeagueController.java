@@ -1,5 +1,6 @@
 package com.cricfant.controller;
 
+import com.cricfant.dto.CustomPrincipal;
 import com.cricfant.dto.LeagueDto;
 import com.cricfant.model.User;
 import com.cricfant.repository.UserRepository;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/league")
+@RequestMapping("/api/tournaments/{tournamentId}/leagues")
 public class LeagueController {
 
     @Autowired
@@ -22,7 +23,7 @@ public class LeagueController {
 
 
     @GetMapping
-    public ResponseEntity<?> readLeagues(@RequestParam Integer tournamentId) {
+    public ResponseEntity<?> readLeagues(@PathVariable Integer tournamentId) {
         List<LeagueDto> leagues = leagueService.getLeagues(tournamentId);
         return ResponseEntity.ok(leagues);
     }
@@ -34,17 +35,17 @@ public class LeagueController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createLeague(@RequestParam Integer tournamentId,
+    public ResponseEntity<?> createLeague(@PathVariable Integer tournamentId,
                                           @RequestParam String name) {
         LeagueDto league = leagueService.createLeague(tournamentId, name);
         return ResponseEntity.ok(league);
     }
 
-    @PostMapping("/{leagueId}/join")
+    @PutMapping("/{leagueId}/squads/{squadId}")
     public ResponseEntity<?> joinLeague(@PathVariable Integer leagueId,
-                                        @RequestParam Integer squadId,
-                                        @AuthenticationPrincipal String principal) {
-        User user = userRepository.findByEmail(principal).get();
+                                        @PathVariable Integer squadId,
+                                        @AuthenticationPrincipal CustomPrincipal principal) {
+        User user = userRepository.findById(principal.getId()).get();
         leagueService.join(leagueId, squadId, user.getId());
         return ResponseEntity.ok("joined league");
     }

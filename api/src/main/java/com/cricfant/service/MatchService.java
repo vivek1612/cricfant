@@ -2,6 +2,7 @@ package com.cricfant.service;
 
 import com.cricfant.constant.Dismissal;
 import com.cricfant.constant.MatchResult;
+import com.cricfant.dto.*;
 import com.cricfant.model.Match;
 import com.cricfant.model.MatchPerf;
 import com.cricfant.model.Player;
@@ -15,6 +16,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +76,7 @@ public class MatchService {
         return Optional.of(matches.get(matches.size() - 1));
     }
 
-    public void processScoresForMatch(String url, Integer matchId) throws IOException {
+    public MatchDto processScoresForMatch(String url, Integer matchId) throws IOException {
         Match m = matchRepository.findById(matchId).get();
         List<MatchPerf> matchPerfs = getMatchPerfs(url, m);
         calculatePoints(matchPerfs);
@@ -82,11 +84,13 @@ public class MatchService {
         matchPerfRepository.deleteAll(existingPerfs);
         matchPerfRepository.flush();
         matchPerfRepository.saveAll(matchPerfs);
+        return getFromMatch(m);
     }
 
-    public void setResultForMatch(MatchResult result, Integer matchId) {
-        Match match = matchRepository.findById(matchId).get();
-        match.setResult(result);
+    public MatchDto setResultForMatch(MatchDto matchDto) {
+        Match match = matchRepository.findById(matchDto.getId()).get();
+        match.setResult(matchDto.getResult());
+        return getFromMatch(match);
     }
 
     private void calculatePoints(List<MatchPerf> matchPerfs) {
@@ -555,5 +559,36 @@ public class MatchService {
         }
         log.warn("TOO MANY MATCHES FOR: " + nameToMatch + "," + MatchPerfs.get(0).getId());
         return null;
+    }
+
+    private MatchDto getFromMatch(Match m){
+        MatchDto mDto = new MatchDto();
+        BeanUtils.copyProperties(m,mDto);
+        mDto.setTournamentId(m.getTournament().getId());
+        mDto.setVenue(m.getVenue().getName());
+        List<TeamDto> teams = new ArrayList<>();
+        TeamDto team1 = new TeamDto();
+        TeamDto team2 = new TeamDto();
+        BeanUtils.copyProperties(m.getTeam1(),team1);
+        BeanUtils.copyProperties(m.getTeam2(),team2);
+        teams.add(team1);
+        teams.add(team2);
+        mDto.setTeams(teams);
+        List<PlayerDto> matchPerfDtos = new ArrayList<>();
+        List<MatchPerf> matchPerfs = m.getMatchPerfs();
+        matchPerfs.forEach(mp -> {
+            PlayerDto pDto = new PlayerDto();
+            BeanUtils.copyProperties(mp.getPlayer(),pDto);
+            PointsDto pointsDto = new PointsDto();
+            BeanUtils.copyProperties(mp,pointsDto);
+            pointsDto.setTotalPoints(pointsDto.getBattingPoints()+
+                    pointsDto.getBowlingPoints()+
+                    pointsDto.getFieldingPoints()+
+                    pointsDto.getBonusPoints());
+            pDto.setPoints(pointsDto);
+            matchPerfDtos.add(pDto);
+        });
+        mDto.setPerformances(matchPerfDtos);
+        return mDto;
     }
 }

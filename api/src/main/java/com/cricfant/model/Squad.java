@@ -9,7 +9,6 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity
-@Data
 public class Squad{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,4 +36,76 @@ public class Squad{
     @EqualsAndHashCode.Exclude
     private Set<Lockin> lockins;
     private Integer points;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Integer getSubsLeft() {
+        return subsLeft;
+    }
+
+    public void setSubsLeft(Integer subsLeft) {
+        this.subsLeft = subsLeft;
+    }
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(Tournament tournament) {
+        this.tournament = tournament;
+    }
+
+    public Set<SquadPlayer> getSquadPlayers() {
+        return squadPlayers;
+    }
+
+    public void setSquadPlayers(Set<SquadPlayer> squadPlayers) {
+        this.squadPlayers = squadPlayers;
+    }
+
+    public Set<League> getLeagues() {
+        return leagues;
+    }
+
+    public void setLeagues(Set<League> leagues) {
+        this.leagues = leagues;
+    }
+
+    public Set<Lockin> getLockins() {
+        return lockins;
+    }
+
+    public void setLockins(Set<Lockin> lockins) {
+        this.lockins = lockins;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
 }

@@ -1,6 +1,7 @@
 package com.cricfant.service;
 
 import com.cricfant.constant.Role;
+import com.cricfant.dto.CustomPrincipal;
 import com.cricfant.dto.UserDto;
 import com.cricfant.model.User;
 import com.cricfant.repository.UserRepository;
@@ -31,7 +32,7 @@ public class UserService implements UserDetailsService {
         return getUserDetails(user);
     }
 
-    public UserDto signUp(UserDto dto) {
+    public UserDto register(UserDto dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("email already exists");
         }
@@ -39,59 +40,25 @@ public class UserService implements UserDetailsService {
         u.setName(dto.getName());
         u.setEmail(dto.getEmail());
         u.setRole(Role.ROLE_USER);
+        u.setPassword(dto.getPassword());
         User save = userRepository.save(u);
         return getUserDto(save);
     }
 
     private UserDto getUserDto(User user) {
         UserDto dto = new UserDto();
-        BeanUtils.copyProperties(user, dto);
+        BeanUtils.copyProperties(user, dto, "password");
         return dto;
     }
 
     private UserDetails getUserDetails(User user) {
-        UserDetails userDetails = new UserDetails() {
-            @Override
-            public Collection<? extends GrantedAuthority> getAuthorities() {
-                return AuthorityUtils.commaSeparatedStringToAuthorityList(
-                        user.getRole().toString());
-            }
-
-            @Override
-            public String getPassword() {
-                return user.getPassword();
-            }
-
-            @Override
-            public String getUsername() {
-                return user.getEmail();
-            }
-
-            @Override
-            public boolean isAccountNonExpired() {
-                return true;
-            }
-
-            @Override
-            public boolean isAccountNonLocked() {
-                return true;
-            }
-
-            @Override
-            public boolean isCredentialsNonExpired() {
-                return true;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        };
-        return userDetails;
+        CustomPrincipal principal = new CustomPrincipal();
+        BeanUtils.copyProperties(user,principal);
+        return principal;
     }
 
-    public UserDto getUserProfile(String email) {
-        User user = userRepository.findByEmail(email)
+    public UserDto getUserProfile(Integer userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("no such user"));
         return getUserDto(user);
     }

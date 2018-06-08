@@ -7,7 +7,6 @@ import lombok.Data;
 import javax.persistence.*;
 
 @Entity
-@Data
 @Table(name = "squad_player")
 public class SquadPlayer {
 
@@ -24,4 +23,36 @@ public class SquadPlayer {
     private Player player;
     @Enumerated(EnumType.STRING)
     private PowerType powerType;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Squad getSquad() {
+        return squad;
+    }
+
+    public void setSquad(Squad squad) {
+        this.squad = squad;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public PowerType getPowerType() {
+        return powerType;
+    }
+
+    public void setPowerType(PowerType powerType) {
+        this.powerType = powerType;
+    }
 }

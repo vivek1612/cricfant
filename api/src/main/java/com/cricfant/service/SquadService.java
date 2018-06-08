@@ -76,7 +76,7 @@ public class SquadService {
             Match lastMatch = oLastMatch.get();
             Set<Lockin> lockedInSquad = lockinRepository
                     .findAllByMatchIdAndSquadId(lastMatch.getId(), squad.getId());
-            if (!(lockedInSquad == null) && !(lockedInSquad == null)) { // if not new squad
+            if (lockedInSquad != null && lockedInSquad.size()!=0) { // if not new squad
                 Integer subs = calculateSubs(lockedInSquad, squadPlayers);
                 if ((nonLockedInSubsLeft + freeSubs) < subs) {
                     throw new IllegalStateException("not enough subs: "
@@ -202,7 +202,7 @@ public class SquadService {
         Match lastMatch = oLastMatch.get();
         Set<Lockin> lockedInSquad = lockinRepository
                 .findAllByMatchIdAndSquadId(lastMatch.getId(), squad.getId());
-        if (!(lockedInSquad == null) && !(lockedInSquad == null)) { // if not new squad
+        if ((lockedInSquad != null) && lockedInSquad.size() != 0) { // if not new squad
             Set<SquadPlayer> nonLockedInSquad = squad.getSquadPlayers();
             log.debug("nonLockedInSquad = " + nonLockedInSquad);
             Integer subsSinceLastLockin = calculateSubs(lockedInSquad, nonLockedInSquad);

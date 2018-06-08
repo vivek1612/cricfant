@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -12,11 +13,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticationConverter;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -30,26 +32,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     UserDetailsService userDetailsService;
     @Autowired
     PasswordEncoder passwordEncoder;
+
     @Value("${security.signing-key}")
     private String signingKey;
-
-    @Value("${security.security-realm}")
-    private String securityRealm;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeRequests()
                 .anyRequest().authenticated().and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .httpBasic().realmName(securityRealm).and()
-                .csrf().disable();
-    }
+                .formLogin()
+                .loginPage("/login").permitAll();
 
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/auth/signUp");
     }
 
     @Override
@@ -67,6 +62,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setSigningKey(signingKey);
+        DefaultUserAuthenticationConverter duac = new DefaultUserAuthenticationConverter();
+        duac.setUserDetailsService(userDetailsService);
+        DefaultAccessTokenConverter datc = new DefaultAccessTokenConverter();
+        datc.setUserTokenConverter(duac);
+        converter.setAccessTokenConverter(datc);
         return converter;
     }
 
@@ -83,6 +83,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         defaultTokenServices.setSupportRefreshToken(true);
         return defaultTokenServices;
     }
+
 
     @Override
     @Bean

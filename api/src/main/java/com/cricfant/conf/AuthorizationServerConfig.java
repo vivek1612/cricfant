@@ -41,6 +41,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Value("${security.jwt.resource-ids}")
     private String resourceIds;
 
+    @Value("${security.jwt.redirectUri}")
+    private String redirectUri;
+
     @Autowired
     private TokenStore tokenStore;
 
@@ -53,9 +56,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .inMemory()
                 .withClient(clientId)
                 .secret(clientSecret)
-                .authorizedGrantTypes(grantType)
+                .authorizedGrantTypes("password","authorization_code", "implicit")
                 .scopes(scopeRead, scopeWrite)
-                .resourceIds(resourceIds);
+                .resourceIds(resourceIds)
+                .redirectUris(redirectUri);
     }
 
     @Override

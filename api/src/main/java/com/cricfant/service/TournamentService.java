@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
-public class LockinService {
+public class TournamentService {
 
     @Autowired
     private TournamentRepository tournamentRepository;
@@ -31,7 +31,7 @@ public class LockinService {
     @Autowired
     private MatchPerfRepository matchPerfRepository;
 
-    public Match lockin(Integer tournamentId) {
+    public void lockin(Integer tournamentId) {
         Tournament tournament = tournamentRepository.findById(tournamentId).get();
         Optional<Match> oMatchToLockin = matchService.getNextMatch(tournamentId);
         if (!oMatchToLockin.isPresent()) {
@@ -57,7 +57,6 @@ public class LockinService {
         });
         matchToLockin.setLockedIn(true);
         log.info("locked in match: " + matchToLockin.getId());
-        return matchToLockin;
     }
 
     public void calculatePoints(Integer tournamentId) {
