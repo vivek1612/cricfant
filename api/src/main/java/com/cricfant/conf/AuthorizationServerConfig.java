@@ -56,7 +56,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .inMemory()
                 .withClient(clientId)
                 .secret(clientSecret)
-                .authorizedGrantTypes("password","authorization_code", "implicit")
+                .authorizedGrantTypes("password","authorization_code", "implicit","refresh_token")
                 .scopes(scopeRead, scopeWrite)
                 .resourceIds(resourceIds)
                 .redirectUris(redirectUri);
