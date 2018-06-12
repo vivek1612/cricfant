@@ -13,7 +13,6 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -64,27 +63,31 @@ public class TournamentService {
         List<Squad> squads = tournament.getSquads();
         Match lastMatch = matchService.getLastMatch(tournamentId).get();
         squads.forEach(squad -> {
-            Set<Lockin> lockins = squad.getLockins().stream()
-                    .filter(lockin -> lockin.getMatch().getId().equals(lastMatch.getId()))
-                    .collect(Collectors.toSet());
-            Integer totalPoints = 0;
-            for (Lockin lockin : lockins) {
-                MatchPerf mp = matchPerfRepository.findByPlayerIdAndMatchId(
-                        lockin.getPlayer().getId(), lockin.getMatch().getId());
-                Integer battingPoints = mp.getBattingPoints() == null ? 0 : mp.getBattingPoints();
-                Integer bowlingPoints = mp.getBowlingPoints() == null ? 0 : mp.getBowlingPoints();
-                Integer fieldingPoints = mp.getFieldingPoints() == null ? 0 : mp.getFieldingPoints();
-                Integer bonusPoints = mp.getBonusPoints() == null ? 0 : mp.getBonusPoints();
-                PowerType powerType = lockin.getPowerType();
-                battingPoints = (powerType != null && powerType.equals(PowerType.BATTING)) ? 2 * battingPoints : battingPoints;
-                bowlingPoints = (powerType != null && powerType.equals(PowerType.BOWLING)) ? 2 * bowlingPoints : bowlingPoints;
-                lockin.setBattingPoints(battingPoints);
-                lockin.setBowlingPoints(bowlingPoints);
-                lockin.setFieldingPoints(fieldingPoints);
-                lockin.setBonusPoints(bonusPoints);
-                totalPoints += battingPoints + bowlingPoints + fieldingPoints + bonusPoints;
-            }
+            Integer totalPoints = setLockinPoints(lastMatch, squad);
             squad.setPoints(squad.getPoints() + totalPoints);
         });
+        lastMatch.setPointsUpdated(true);
+    }
+
+    private Integer setLockinPoints(Match match, Squad squad) {
+        Set<Lockin> lockins = lockinRepository.findAllByMatchIdAndSquadId(match.getId(), squad.getId());
+        Integer totalPoints = 0;
+        for (Lockin lockin : lockins) {
+            MatchPerf mp = matchPerfRepository.findByPlayerIdAndMatchId(
+                    lockin.getPlayer().getId(), lockin.getMatch().getId());
+            Integer battingPoints = mp.getBattingPoints() == null ? 0 : mp.getBattingPoints();
+            Integer bowlingPoints = mp.getBowlingPoints() == null ? 0 : mp.getBowlingPoints();
+            Integer fieldingPoints = mp.getFieldingPoints() == null ? 0 : mp.getFieldingPoints();
+            Integer bonusPoints = mp.getBonusPoints() == null ? 0 : mp.getBonusPoints();
+            PowerType powerType = lockin.getPowerType();
+            battingPoints = (powerType != null && powerType.equals(PowerType.BATTING)) ? 2 * battingPoints : battingPoints;
+            bowlingPoints = (powerType != null && powerType.equals(PowerType.BOWLING)) ? 2 * bowlingPoints : bowlingPoints;
+            lockin.setBattingPoints(battingPoints);
+            lockin.setBowlingPoints(bowlingPoints);
+            lockin.setFieldingPoints(fieldingPoints);
+            lockin.setBonusPoints(bonusPoints);
+            totalPoints += battingPoints + bowlingPoints + fieldingPoints + bonusPoints;
+        }
+        return totalPoints;
     }
 }

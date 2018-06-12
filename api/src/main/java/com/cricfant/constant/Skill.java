@@ -2,9 +2,9 @@ package com.cricfant.constant;
 
 public enum Skill {
     BATSMAN(1),
-    BOWLER(2),
-    KEEPER(3),
-    ALL_ROUNDER(4);
+    KEEPER(2),
+    ALL_ROUNDER(3),
+    BOWLER(4);
 
     private final int id;
 

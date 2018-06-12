@@ -10,9 +10,8 @@ import {Router} from '@angular/router';
 export class AccountOpsComponent implements OnInit {
 
   logout() {
-    this.authService.logout().then(value => {
-      this.router.navigateByUrl('');
-    });
+    this.authService.logout();
+    this.router.navigateByUrl('login');
   }
 
   login() {
@@ -22,7 +21,6 @@ export class AccountOpsComponent implements OnInit {
   constructor(public authService: AuthService,
               private router: Router) {
   }
-
 
   ngOnInit() {
   }

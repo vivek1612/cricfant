@@ -40,6 +40,8 @@ public class Match {
     @OneToMany(mappedBy = "match")
     private List<Lockin> lockins;
     private Boolean lockedIn;
+    private Boolean pointsUpdated;
+    private Boolean scoreUpdated;
     @Enumerated(EnumType.STRING)
     private MatchResult result;
 
@@ -137,5 +139,21 @@ public class Match {
 
     public void setResult(MatchResult result) {
         this.result = result;
+    }
+
+    public Boolean getPointsUpdated() {
+        return pointsUpdated;
+    }
+
+    public void setPointsUpdated(Boolean pointsUpdated) {
+        this.pointsUpdated = pointsUpdated;
+    }
+
+    public Boolean getScoreUpdated() {
+        return scoreUpdated;
+    }
+
+    public void setScoreUpdated(Boolean scoreUpdated) {
+        this.scoreUpdated = scoreUpdated;
     }
 }

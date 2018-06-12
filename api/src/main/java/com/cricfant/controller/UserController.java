@@ -16,14 +16,12 @@ public class UserController {
 
     @PreAuthorize("principal.id == #userId")
     @GetMapping("/{userId}")
-    @CrossOrigin
     public ResponseEntity<?> getUserProfile(@PathVariable Integer userId) {
         UserDto dto = userService.getUserProfile(userId);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping()
-    @CrossOrigin
     public ResponseEntity<?> register(@RequestBody UserDto dto) {
         UserDto newUser = userService.register(dto);
         return ResponseEntity.ok(newUser);

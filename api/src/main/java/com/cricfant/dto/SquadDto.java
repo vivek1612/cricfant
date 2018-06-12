@@ -2,6 +2,7 @@ package com.cricfant.dto;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +13,8 @@ public class SquadDto {
     private String name;
     private Integer forMatchId;
     private Integer subsLeft;
-    private Map<Integer, String> leagues;
-    private Set<PlayerDto> players;
+    private Integer points;
+    private Integer lastMatchPoints;
+    private List<LeagueForSquadDto> leagues;
+    private List<PlayerDto> players;
 }

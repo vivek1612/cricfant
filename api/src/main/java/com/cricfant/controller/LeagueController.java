@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tournaments/{tournamentId}/leagues")
+@RequestMapping("/api/leagues")
 public class LeagueController {
 
     @Autowired
@@ -23,7 +23,7 @@ public class LeagueController {
 
 
     @GetMapping
-    public ResponseEntity<?> readLeagues(@PathVariable Integer tournamentId) {
+    public ResponseEntity<?> readLeagues(@RequestParam Integer tournamentId) {
         List<LeagueDto> leagues = leagueService.getLeagues(tournamentId);
         return ResponseEntity.ok(leagues);
     }

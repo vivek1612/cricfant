@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
+import {ApiService} from "../api/api.service";
 
 @Component({
   selector: 'app-squads',
@@ -7,9 +8,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SquadsComponent implements OnInit {
 
-  constructor() { }
+  squads: any;
+
+  constructor(private apiService: ApiService) {
+  }
 
   ngOnInit() {
+    this.apiService.getSquads().subscribe(value => {
+      this.squads = value;
+    }), err => {
+      console.log(err);
+    }
   }
 
 }

@@ -84,6 +84,7 @@ public class MatchService {
         matchPerfRepository.deleteAll(existingPerfs);
         matchPerfRepository.flush();
         matchPerfRepository.saveAll(matchPerfs);
+        m.setScoreUpdated(true);
         return getFromMatch(m);
     }
 

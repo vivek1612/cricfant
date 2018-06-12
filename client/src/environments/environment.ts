@@ -4,14 +4,7 @@
 
 export const environment = {
   production: false,
-  firebase: {
-    apiKey: 'AIzaSyAnvJFhs1439_zwBFvlcHZVpBoaQKEUKzs',
-    authDomain: 'cricfant-b3a8d.firebaseapp.com',
-    databaseURL: 'https://cricfant-b3a8d.firebaseio.com',
-    projectId: 'cricfant-b3a8d',
-    storageBucket: 'cricfant-b3a8d.appspot.com',
-    messagingSenderId: '353369435474'
-  }
+  API_BASE_URL: 'http://127.0.0.1:8080'
 };
 
 /*

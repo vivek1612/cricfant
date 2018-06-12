@@ -1,6 +1,7 @@
 package com.cricfant.service;
 
 import com.cricfant.dto.LeagueDto;
+import com.cricfant.dto.SquadDto;
 import com.cricfant.model.League;
 import com.cricfant.model.Squad;
 import com.cricfant.model.Tournament;
@@ -11,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +25,8 @@ public class LeagueService {
     LeagueRepository leagueRepository;
     @Autowired
     SquadRepository squadRepository;
+    @Autowired
+    SquadService squadService;
 
     public List<LeagueDto> getLeagues(Integer tournamentId) {
         List<League> leagues = leagueRepository.findAllByTournament_Id(tournamentId);
@@ -47,10 +47,12 @@ public class LeagueService {
         l.setId(league.getId());
         l.setName(league.getName());
         l.setTournamentId(league.getTournament().getId());
-        Map<Integer, String> squads = new HashMap<>();
+        l.setPoints(league.getPoints());
+
+        List<SquadDto> squads = new ArrayList<>();
         if (league.getSquads() != null) {
             league.getSquads().forEach(squad -> {
-                squads.put(squad.getId(), squad.getName());
+                squads.add(squadService.getFromSquad(squad));
             });
         }
         l.setSquads(squads);

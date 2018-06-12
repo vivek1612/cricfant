@@ -28,6 +28,7 @@ export class LoginComponent implements OnInit {
     console.log('login init');
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     if (this.authService.isLoggedIn()) {
+      console.log('already logged in. navigating to '+this.returnUrl)
       this.router.navigateByUrl(this.returnUrl);
     }
   }
@@ -41,17 +42,10 @@ export class LoginComponent implements OnInit {
     }).catch(e => {
       console.log(e);
       this.loggingIn = false;
-      const err = e.code ? e.code : e.error;
+      const err = e.error;
       switch (err) {
-        case 'auth/invalid-email':
-          this.error = 'Invalid Email';
-          break;
-        case 'auth/email-already-in-use':
         case 'email already exists':
           this.error = 'Email in Use';
-          break;
-        case 'auth/weak-password':
-          this.error = 'Password Too Weak';
           break;
         default:
           this.error = 'Unknown Error';
@@ -72,22 +66,10 @@ export class LoginComponent implements OnInit {
     }).catch(e => {
       console.log(e);
       this.loggingIn = false;
-      const err = e.code ? e.code : e.error;
+      const err = e.error.error_description;
       switch (err) {
-        case 'auth/invalid-email':
-          this.error = 'Invalid Email';
-          break;
-        case 'auth/user-disabled':
-          this.error = 'Account Disabled';
-          break;
-        case 'auth/user-not-found':
-          this.error = 'User Not Found';
-          break;
-        case 'auth/wrong-password':
-          this.error = 'Wrong Password';
-          break;
-        case 'auth/too-many-requests':
-          this.error = 'Blocked For Unusual Activity';
+        case 'Bad credentials':
+          this.error = 'Invalid Credentials';
           break;
         default:
           this.error = 'Unknown Error';
@@ -98,13 +80,13 @@ export class LoginComponent implements OnInit {
   }
 
   loginWithGoogle() {
-    this.loggingIn = true;
-    this.authService.loginWithGoogle().then(r => {
-      this.loggingIn = false;
-      this.loginForm.resetForm();
-    }).catch(e => {
-      console.log(e);
-      this.loggingIn = false;
-    });
+    // this.loggingIn = true;
+    // this.authService.loginWithGoogle().then(r => {
+    //   this.loggingIn = false;
+    //   this.loginForm.resetForm();
+    // }).catch(e => {
+    //   console.log(e);
+    //   this.loggingIn = false;
+    // });
   }
 }

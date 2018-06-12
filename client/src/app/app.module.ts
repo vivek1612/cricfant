@@ -5,22 +5,22 @@ import {RouterModule} from '@angular/router';
 
 import {AppComponent} from './app.component';
 import {MaterialModule} from './material.module';
-import {AngularFireModule} from 'angularfire2';
-import {environment} from '../environments/environment';
-import {AngularFireAuthModule} from 'angularfire2/auth';
 import {LoginComponent} from './login/login.component';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {NavigationComponent} from './navigation/navigation.component';
 import {LayoutModule} from '@angular/cdk/layout';
 import {SquadsComponent} from './squads/squads.component';
 import {LeaguesComponent} from './leagues/leagues.component';
 import {TournamentsComponent} from './tournaments/tournaments.component';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
-import {AuthInterceptorService} from './auth/auth-interceptor.service';
 import {AuthGuard} from './auth/auth.guard';
 import { AccountOpsComponent } from './account-ops/account-ops.component';
 import { HomeComponent } from './home/home.component';
 import {AuthService} from "./auth/auth.service";
+import {AuthInterceptor} from "./auth/auth.interceptor";
+import { LeagueComponent } from './league/league.component';
+import { SquadComponent } from './squad/squad.component';
+import { NewSquadComponent } from './new-squad/new-squad.component';
 
 @NgModule({
   declarations: [
@@ -31,35 +31,40 @@ import {AuthService} from "./auth/auth.service";
     LeaguesComponent,
     TournamentsComponent,
     AccountOpsComponent,
-    HomeComponent
+    HomeComponent,
+    LeagueComponent,
+    SquadComponent,
+    NewSquadComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
+    ReactiveFormsModule,
     MaterialModule,
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFireAuthModule,
     LayoutModule,
     HttpClientModule,
     RouterModule.forRoot([
       {path: 'login', component: LoginComponent},
       {path: 'home', component: HomeComponent},
       {path: 'squads', component: SquadsComponent, canActivate: [AuthGuard]},
+      {path: 'squads/new', component: NewSquadComponent, canActivate: [AuthGuard]},
+      {path: 'squads/:id', component: SquadComponent, canActivate: [AuthGuard]},
       {path: 'leagues', component: LeaguesComponent, canActivate: [AuthGuard]},
+      {path: 'leagues/:id', component: LeagueComponent, canActivate: [AuthGuard]},
       {path: 'tournaments', component: TournamentsComponent, canActivate: [AuthGuard]},
       {path: '', redirectTo: 'home', pathMatch: 'full'}
-    ])
+    ]),
   ],
   providers: [
     AuthGuard,
+    AuthService,
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptorService,
+      useClass: AuthInterceptor,
       multi: true
-    },
-    AuthService,
-    {provide: 'BASE_URL', useValue: 'http://localhost:8080'}],
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {

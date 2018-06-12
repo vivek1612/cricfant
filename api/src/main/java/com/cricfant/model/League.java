@@ -2,7 +2,7 @@ package com.cricfant.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
+import org.hibernate.annotations.Sort;
 
 import javax.persistence.*;
 import java.util.List;
@@ -15,6 +15,7 @@ public class League {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+    private Integer points;
     @JsonBackReference("tournament_leagues")
     @ManyToOne
     @JoinColumn(name = "tournament_id", referencedColumnName = "id", nullable = false)
@@ -23,7 +24,9 @@ public class League {
     @JoinTable(name = "league_squad",
             joinColumns = @JoinColumn(name = "league_id"),
             inverseJoinColumns = @JoinColumn(name = "squad_id"))
+    @OrderBy("points desc")
     private List<Squad> squads;
+
 
     public Integer getId() {
         return id;
@@ -55,5 +58,13 @@ public class League {
 
     public void setSquads(List<Squad> squads) {
         this.squads = squads;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 }

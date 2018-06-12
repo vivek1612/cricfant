@@ -1,0 +1,35 @@
+.leagueItem{
+  height: 32px;
+}
+
+td[mat-cell]{
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+th[mat-header-cell]{
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+table {
+  margin-bottom: 15px;
+}
+
+th.mat-sort-header-sorted {
+  color: black;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.mat-card-title-group{
+  margin-left: 0px !important;
+}
+
+#to-top {
+  position:fixed;
+  bottom: 60px;
+  right: 10px;
+}

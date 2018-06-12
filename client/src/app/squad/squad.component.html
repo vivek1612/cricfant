@@ -1,0 +1,74 @@
+<mat-card *ngIf="loaded$ | async">
+  <mat-card-title-group>
+    <mat-card-title>
+      <a routerLink="/squads/{{squad.id}}">{{squad.name}}
+      </a>
+    </mat-card-title>
+    <mat-card-subtitle>
+      Subs Left:<strong> {{squad.subsLeft}}</strong>
+      <mat-divider [vertical]="true" [inset]="true"></mat-divider>
+      Points: <strong>{{squad.points}}</strong>
+      <mat-divider [vertical]="true" [inset]="true"></mat-divider>
+      Last Match: <strong>{{squad.lastMatchPoints}}</strong>
+    </mat-card-subtitle>
+  </mat-card-title-group>
+  <mat-card-content>
+    <button mat-fab id="to-top" color="primary" *ngIf="!showPlayers"
+            routerLink="new">
+      <mat-icon>add</mat-icon>
+    </button>
+    <mat-toolbar color="primary" style="height: 30px" *ngIf="showPlayers">
+      <span class="spacer"></span>
+      <button mat-icon-button matTooltip="Edit">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button matTooltip="Save" [disabled]="true">
+        <mat-icon>save</mat-icon>
+      </button>
+    </mat-toolbar>
+    <table mat-table [dataSource]="squad.players"
+           class="mat-elevation-z8" [hidden]="!showPlayers" width="100%">
+
+      <ng-container matColumnDef="skill">
+        <th mat-header-cell *matHeaderCellDef>
+        </th>
+        <td mat-cell *matCellDef="let player" width="10%">
+          <mat-icon class="symbol">{{getSkillIcon(player.skill)}}</mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Player</th>
+        <td mat-cell *matCellDef="let player">
+          {{player.name}}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="team">
+        <th mat-header-cell *matHeaderCellDef> Team</th>
+        <td mat-cell *matCellDef="let player">{{player.team.shortName}}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedPlayerColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedPlayerColumns;"></tr>
+    </table>
+
+    <table mat-table [dataSource]="squad.leagues"
+           class="mat-elevation-z8" *ngIf="squad.leagues?.length > 0">
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> League</th>
+        <td mat-cell *matCellDef="let league">
+          <a routerLink="/leagues/{{league.id}}"> {{league.name}} </a></td>
+      </ng-container>
+
+      <ng-container matColumnDef="rank">
+        <th mat-header-cell *matHeaderCellDef> Rank</th>
+        <td mat-cell *matCellDef="let league"> {{league.rank}}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedLeagueColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedLeagueColumns;"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>

@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -22,6 +24,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
+
+    @Qualifier("appUserService")
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Value("${security.jwt.client-id}")
     private String clientId;
@@ -44,11 +50,20 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Value("${security.jwt.redirectUri}")
     private String redirectUri;
 
+    @Value("${security.jwt.access-token-validity-secs}")
+    private String accessTokenValiditySecs;
+
+    @Value("${security.jwt.refresh-token-validity-secs}")
+    private String refreshTokenValiditySecs;
+
     @Autowired
     private TokenStore tokenStore;
 
     @Autowired
     private JwtAccessTokenConverter accessTokenConverter;
+
+    @Autowired
+    private TokenEnhancer customTokenEnhancer;
 
     @Override
     public void configure(ClientDetailsServiceConfigurer configurer) throws Exception {
@@ -59,16 +74,19 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authorizedGrantTypes("password","authorization_code", "implicit","refresh_token")
                 .scopes(scopeRead, scopeWrite)
                 .resourceIds(resourceIds)
-                .redirectUris(redirectUri);
+                .redirectUris(redirectUri)
+                .accessTokenValiditySeconds(Integer.parseInt(accessTokenValiditySecs))
+                .refreshTokenValiditySeconds(Integer.parseInt(refreshTokenValiditySecs));
     }
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
-        enhancerChain.setTokenEnhancers(Arrays.asList(accessTokenConverter));
+        enhancerChain.setTokenEnhancers(Arrays.asList(customTokenEnhancer,accessTokenConverter));
         endpoints.tokenStore(tokenStore)
                 .accessTokenConverter(accessTokenConverter)
                 .tokenEnhancer(enhancerChain)
-                .authenticationManager(authenticationManager);
+                .authenticationManager(authenticationManager)
+        .userDetailsService(userDetailsService);
     }
 }

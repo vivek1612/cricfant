@@ -30,6 +30,7 @@ public class Squad{
     @JoinTable(name = "league_squad",
             joinColumns = @JoinColumn(name = "squad_id"),
             inverseJoinColumns = @JoinColumn(name = "league_id"))
+    @OrderBy
     private Set<League> leagues;
     @JsonManagedReference("squad_lockins")
     @OneToMany(mappedBy = "squad")

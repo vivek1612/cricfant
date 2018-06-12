@@ -2,3 +2,10 @@
 @import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
 @import url('https://unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css');
 body { margin: 0; }
+@font-face {
+  font-family: "symbols";
+  src: url("assets/symbols.woff") format('woff');
+}
+.symbol{
+  font-family: symbols;
+}

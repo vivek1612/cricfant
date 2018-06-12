@@ -4,6 +4,7 @@ import com.cricfant.dto.MatchDto;
 import com.cricfant.service.MatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ public class MatchController {
     @Autowired
     private MatchService matchService;
 
+    @Secured("ROLE_ADMIN")
     @PostMapping("/{matchId}/performances")
     public ResponseEntity<?> updateScore(@RequestParam String url,
                                          @PathVariable Integer matchId) throws IOException {
@@ -22,6 +24,7 @@ public class MatchController {
         return ResponseEntity.ok(matchDto);
     }
 
+    @Secured("ROLE_ADMIN")
     @PutMapping("/{matchId}")
     public ResponseEntity<?> setResult(@RequestBody MatchDto matchDto,
                                        @PathVariable Integer matchId) {
