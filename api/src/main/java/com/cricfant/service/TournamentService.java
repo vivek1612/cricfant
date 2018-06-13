@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
@@ -40,15 +40,15 @@ public class TournamentService {
         log.info("locking in match: " + matchToLockin.getId());
         lockinRepository.deleteAll(matchToLockin.getLockins());
         lockinRepository.flush();
-        List<Squad> squads = tournament.getSquads();
+        Collection<Squad> squads = tournament.getSquads();
         squads.forEach(squad -> {
             Integer subsLeft = squadService.getNonLockedInSubsLeft(squad.getId());
             squad.setSubsLeft(subsLeft);
-            Set<SquadPlayer> squadPlayers = squad.getSquadPlayers();
+            Collection<SquadPlayer> squadPlayers = squad.getSquadPlayers();
             squadPlayers.forEach(squadPlayer -> {
                 Lockin l = new Lockin();
                 l.setSquad(squad);
-                l.setPlayer(squadPlayer.getPlayer());
+                l.setTournamentTeamPlayer(squadPlayer.getTournamentTeamPlayer());
                 l.setMatch(matchToLockin);
                 l.setPowerType(squadPlayer.getPowerType());
                 lockinRepository.save(l);
@@ -58,9 +58,10 @@ public class TournamentService {
         log.info("locked in match: " + matchToLockin.getId());
     }
 
+    // TODO implement rollback for points calculation rollBackPointsCalculation(matchId)
     public void calculatePoints(Integer tournamentId) {
         Tournament tournament = tournamentRepository.findById(tournamentId).get();
-        List<Squad> squads = tournament.getSquads();
+        Collection<Squad> squads = tournament.getSquads();
         Match lastMatch = matchService.getLastMatch(tournamentId).get();
         squads.forEach(squad -> {
             Integer totalPoints = setLockinPoints(lastMatch, squad);
@@ -73,8 +74,11 @@ public class TournamentService {
         Set<Lockin> lockins = lockinRepository.findAllByMatchIdAndSquadId(match.getId(), squad.getId());
         Integer totalPoints = 0;
         for (Lockin lockin : lockins) {
-            MatchPerf mp = matchPerfRepository.findByPlayerIdAndMatchId(
-                    lockin.getPlayer().getId(), lockin.getMatch().getId());
+            MatchPerformance mp = matchPerfRepository.findByTournamentTeamPlayerIdAndMatchId(
+                    lockin.getTournamentTeamPlayer().getId(), lockin.getMatch().getId());
+            if(mp==null){ // player did not play in match
+                continue;
+            }
             Integer battingPoints = mp.getBattingPoints() == null ? 0 : mp.getBattingPoints();
             Integer bowlingPoints = mp.getBowlingPoints() == null ? 0 : mp.getBowlingPoints();
             Integer fieldingPoints = mp.getFieldingPoints() == null ? 0 : mp.getFieldingPoints();

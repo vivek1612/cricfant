@@ -1,32 +1,37 @@
 package com.cricfant.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
-
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name = "team")
 public class Team {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Basic
+    @Column(name = "name", nullable = false, length = 32)
     private String name;
+
+    @Basic
+    @Column(name = "short_name", nullable = false, length = 8)
     private String shortName;
-    @JsonManagedReference("team_matchesAsTeam1")
+
+    @Basic
+    @Column(name = "ext_id")
+    private Integer extId;
+
     @OneToMany(mappedBy = "team1")
-    private List<Match> matchesAsTeam1;
-    @JsonManagedReference("team_matchesAsTeam1")
+    private Set<Match> matchesByTeam1;
+
     @OneToMany(mappedBy = "team2")
-    private List<Match> matchesAsTeam2;
-    @JsonManagedReference("team_players")
+    private Set<Match> matchesByTeam2;
+
     @OneToMany(mappedBy = "team")
-    private List<Player> players;
-    @ManyToMany
-    @JoinTable(name = "tournament_team",
-            joinColumns = @JoinColumn(name = "team_id"),
-            inverseJoinColumns = @JoinColumn(name = "tournament_id"))
-    private List<Tournament> tournaments;
+    private Set<TournamentTeam> tournamentTeams;
 
     public Integer getId() {
         return id;
@@ -52,35 +57,35 @@ public class Team {
         this.shortName = shortName;
     }
 
-    public List<Match> getMatchesAsTeam1() {
-        return matchesAsTeam1;
+    public Integer getExtId() {
+        return extId;
     }
 
-    public void setMatchesAsTeam1(List<Match> matchesAsTeam1) {
-        this.matchesAsTeam1 = matchesAsTeam1;
+    public void setExtId(Integer extId) {
+        this.extId = extId;
     }
 
-    public List<Match> getMatchesAsTeam2() {
-        return matchesAsTeam2;
+    public Set<Match> getMatchesByTeam1() {
+        return matchesByTeam1;
     }
 
-    public void setMatchesAsTeam2(List<Match> matchesAsTeam2) {
-        this.matchesAsTeam2 = matchesAsTeam2;
+    public void setMatchesByTeam1(Set<Match> matchesById) {
+        this.matchesByTeam1 = matchesById;
     }
 
-    public List<Player> getPlayers() {
-        return players;
+    public Set<Match> getMatchesByTeam2() {
+        return matchesByTeam2;
     }
 
-    public void setPlayers(List<Player> players) {
-        this.players = players;
+    public void setMatchesByTeam2(Set<Match> matchesById_0) {
+        this.matchesByTeam2 = matchesById_0;
     }
 
-    public List<Tournament> getTournaments() {
-        return tournaments;
+    public Set<TournamentTeam> getTournamentTeams() {
+        return tournamentTeams;
     }
 
-    public void setTournaments(List<Tournament> tournaments) {
-        this.tournaments = tournaments;
+    public void setTournamentTeams(Set<TournamentTeam> tournamentTeamsById) {
+        this.tournamentTeams = tournamentTeamsById;
     }
 }

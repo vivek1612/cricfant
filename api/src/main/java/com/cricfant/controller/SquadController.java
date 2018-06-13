@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @SuppressWarnings("Duplicates")
@@ -30,8 +31,7 @@ public class SquadController {
 
     @GetMapping
     public ResponseEntity<?> readSquads(@AuthenticationPrincipal CustomPrincipal principal) {
-        User user = userRepository.findById(principal.getId()).get();
-        List<SquadDto> squads = squadService.getSquads(user.getId());
+        List<SquadDto> squads = squadService.getSquads(principal.getId());
         return ResponseEntity.ok(squads);
     }
 

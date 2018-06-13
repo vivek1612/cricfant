@@ -12,5 +12,6 @@ public class PlayerDto {
     private PowerType powerType;
     private PointsDto points;
     private Skill skill;
+    private Integer price;
     private TeamDto team;
 }

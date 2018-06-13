@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -35,9 +36,10 @@ public class LeagueController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createLeague(@PathVariable Integer tournamentId,
-                                          @RequestParam String name) {
-        LeagueDto league = leagueService.createLeague(tournamentId, name);
+    public ResponseEntity<?> createLeague(@AuthenticationPrincipal CustomPrincipal principal,
+                                          @RequestBody
+                                          @Valid LeagueDto leagueDto) {
+        LeagueDto league = leagueService.createLeague(leagueDto, principal.getId());
         return ResponseEntity.ok(league);
     }
 

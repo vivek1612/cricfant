@@ -1,5 +1,6 @@
 package com.cricfant.conf;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +11,19 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
+
     @ExceptionHandler(value = {IllegalArgumentException.class, IllegalStateException.class})
     protected ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
         String bodyOfResponse = ex.getMessage();
         return handleExceptionInternal(ex, bodyOfResponse,
                 new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
+
+    @ExceptionHandler(value = {DataAccessException.class})
+    protected ResponseEntity<Object> handleDataAccessExceptions(RuntimeException ex, WebRequest request) {
+        String bodyOfResponse = ex.getClass().getSimpleName();
+        return handleExceptionInternal(ex, bodyOfResponse,
+                new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
 }

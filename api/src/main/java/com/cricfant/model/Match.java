@@ -1,49 +1,69 @@
 package com.cricfant.model;
 
 import com.cricfant.constant.MatchResult;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name = "match")
 public class Match {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Basic
+    @Column(name = "scheduled_start", nullable = false)
     private Timestamp scheduledStart;
+
+    @Basic
+    @Column(name = "locked_in", nullable = false)
+    private Boolean lockedIn;
+
+    @Basic
+    @Column(name = "points_updated", nullable = false)
+    private Boolean pointsUpdated;
+
+    @Basic
+    @Column(name = "score_updated", nullable = false)
+    private Boolean scoreUpdated;
+
+    @Basic
+    @Column(name = "seq_num")
     private Integer seqNum;
+
+    @Basic
+    @Column(name = "description", length = 256)
     private String description;
-    @JsonManagedReference("match_matchPerfs")
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result", length = 50)
+    private MatchResult result;
+
     @OneToMany(mappedBy = "match")
-    private List<MatchPerf> matchPerfs;
-    @JsonBackReference("venue_matches")
+    private Set<Lockin> lockins;
+
     @ManyToOne
     @JoinColumn(name = "venue_id", referencedColumnName = "id", nullable = false)
     private Venue venue;
-    @JsonBackReference("team_matchesAsTeam1")
+
     @ManyToOne
     @JoinColumn(name = "team1_id", referencedColumnName = "id", nullable = false)
     private Team team1;
-    @JsonBackReference("team_matchesAsTeam2")
+
     @ManyToOne
     @JoinColumn(name = "team2_id", referencedColumnName = "id", nullable = false)
     private Team team2;
-    @JsonBackReference("tournament_matches")
+
     @ManyToOne
     @JoinColumn(name = "tournament_id", referencedColumnName = "id", nullable = false)
     private Tournament tournament;
-    @JsonManagedReference("match_lockins")
+
     @OneToMany(mappedBy = "match")
-    private List<Lockin> lockins;
-    private Boolean lockedIn;
-    private Boolean pointsUpdated;
-    private Boolean scoreUpdated;
-    @Enumerated(EnumType.STRING)
-    private MatchResult result;
+    private Set<MatchPerformance> matchPerformances;
 
     public Integer getId() {
         return id;
@@ -59,6 +79,30 @@ public class Match {
 
     public void setScheduledStart(Timestamp scheduledStart) {
         this.scheduledStart = scheduledStart;
+    }
+
+    public Boolean getLockedIn() {
+        return lockedIn;
+    }
+
+    public void setLockedIn(Boolean lockedIn) {
+        this.lockedIn = lockedIn;
+    }
+
+    public Boolean getPointsUpdated() {
+        return pointsUpdated;
+    }
+
+    public void setPointsUpdated(Boolean pointsUpdated) {
+        this.pointsUpdated = pointsUpdated;
+    }
+
+    public Boolean getScoreUpdated() {
+        return scoreUpdated;
+    }
+
+    public void setScoreUpdated(Boolean scoreUpdated) {
+        this.scoreUpdated = scoreUpdated;
     }
 
     public Integer getSeqNum() {
@@ -77,62 +121,6 @@ public class Match {
         this.description = description;
     }
 
-    public List<MatchPerf> getMatchPerfs() {
-        return matchPerfs;
-    }
-
-    public void setMatchPerfs(List<MatchPerf> matchPerfs) {
-        this.matchPerfs = matchPerfs;
-    }
-
-    public Venue getVenue() {
-        return venue;
-    }
-
-    public void setVenue(Venue venue) {
-        this.venue = venue;
-    }
-
-    public Team getTeam1() {
-        return team1;
-    }
-
-    public void setTeam1(Team team1) {
-        this.team1 = team1;
-    }
-
-    public Team getTeam2() {
-        return team2;
-    }
-
-    public void setTeam2(Team team2) {
-        this.team2 = team2;
-    }
-
-    public Tournament getTournament() {
-        return tournament;
-    }
-
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-    }
-
-    public List<Lockin> getLockins() {
-        return lockins;
-    }
-
-    public void setLockins(List<Lockin> lockins) {
-        this.lockins = lockins;
-    }
-
-    public Boolean getLockedIn() {
-        return lockedIn;
-    }
-
-    public void setLockedIn(Boolean lockedIn) {
-        this.lockedIn = lockedIn;
-    }
-
     public MatchResult getResult() {
         return result;
     }
@@ -141,19 +129,52 @@ public class Match {
         this.result = result;
     }
 
-    public Boolean getPointsUpdated() {
-        return pointsUpdated;
+    public Set<Lockin> getLockins() {
+        return lockins;
     }
 
-    public void setPointsUpdated(Boolean pointsUpdated) {
-        this.pointsUpdated = pointsUpdated;
+    public void setLockins(Set<Lockin> lockinsById) {
+        this.lockins = lockinsById;
     }
 
-    public Boolean getScoreUpdated() {
-        return scoreUpdated;
+    public Venue getVenue() {
+        return venue;
     }
 
-    public void setScoreUpdated(Boolean scoreUpdated) {
-        this.scoreUpdated = scoreUpdated;
+    public void setVenue(Venue venueByVenueId) {
+        this.venue = venueByVenueId;
     }
+
+    public Team getTeam1() {
+        return team1;
+    }
+
+    public void setTeam1(Team teamByTeam1Id) {
+        this.team1 = teamByTeam1Id;
+    }
+
+    public Team getTeam2() {
+        return team2;
+    }
+
+    public void setTeam2(Team teamByTeam2Id) {
+        this.team2 = teamByTeam2Id;
+    }
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(Tournament tournamentByTournamentId) {
+        this.tournament = tournamentByTournamentId;
+    }
+
+    public Set<MatchPerformance> getMatchPerformances() {
+        return matchPerformances;
+    }
+
+    public void setMatchPerformances(Set<MatchPerformance> matchPerfsById) {
+        this.matchPerformances = matchPerfsById;
+    }
+
 }

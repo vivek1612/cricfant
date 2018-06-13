@@ -1,31 +1,39 @@
 package com.cricfant.model;
 
 import com.cricfant.constant.Role;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
-import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Basic
+    @Column(name = "name", nullable = false, length = 64)
     private String name;
-    private String email;
+
+    @Basic
+    @Column(name = "password", nullable = false, length = 128)
     private String password;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 64)
     private Role role;
-    @JsonManagedReference("user_squads")
+
+    @Basic
+    @Column(name = "email", nullable = false, length = 64)
+    private String email;
+
+    @OneToMany(mappedBy = "admin")
+    private Set<League> leagues;
+
     @OneToMany(mappedBy = "user")
-    @ToString.Exclude
-    private List<Squad> squads;
+    private Set<Squad> squads;
 
     public Integer getId() {
         return id;
@@ -41,14 +49,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getPassword() {
@@ -67,11 +67,27 @@ public class User {
         this.role = role;
     }
 
-    public List<Squad> getSquads() {
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Set<Squad> getSquads() {
         return squads;
     }
 
-    public void setSquads(List<Squad> squads) {
-        this.squads = squads;
+    public void setSquads(Set<Squad> squadsById) {
+        this.squads = squadsById;
+    }
+
+    public Set<League> getLeagues() {
+        return leagues;
+    }
+
+    public void setLeagues(Set<League> leagues) {
+        this.leagues = leagues;
     }
 }

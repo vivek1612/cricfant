@@ -1,35 +1,49 @@
 package com.cricfant.model;
 
 import com.cricfant.constant.PowerType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.Data;
 
 import javax.persistence.*;
 
 @Entity
+@Table(name = "lockin")
 public class Lockin {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "power_type", length = 32)
+    private PowerType powerType;
+
+    @Basic
+    @Column(name = "batting_points")
     private Integer battingPoints;
+
+    @Basic
+    @Column(name = "bowling_points")
     private Integer bowlingPoints;
+
+    @Basic
+    @Column(name = "fielding_points")
     private Integer fieldingPoints;
+
+    @Basic
+    @Column(name = "bonus_points")
     private Integer bonusPoints;
-    @JsonBackReference("squad_lockins")
-    @ManyToOne
-    @JoinColumn(name = "squad_id", referencedColumnName = "id", nullable = false)
-    private Squad squad;
-    @JsonBackReference("player_lockins")
-    @ManyToOne
-    @JoinColumn(name = "player_id", referencedColumnName = "id", nullable = false)
-    private Player player;
-    @JsonBackReference("match_lockins")
+
     @ManyToOne
     @JoinColumn(name = "match_id", referencedColumnName = "id", nullable = false)
     private Match match;
-    @JsonBackReference("playerPowerType_lockins")
-    @Enumerated(EnumType.STRING)
-    private PowerType powerType;
+
+    @ManyToOne
+    @JoinColumn(name = "squad_id", referencedColumnName = "id", nullable = false)
+    private Squad squad;
+
+    @ManyToOne
+    @JoinColumn(name = "tournament_team_player_id", referencedColumnName = "id", nullable = false)
+    private TournamentTeamPlayer tournamentTeamPlayer;
 
     public Integer getId() {
         return id;
@@ -37,6 +51,14 @@ public class Lockin {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public PowerType getPowerType() {
+        return powerType;
+    }
+
+    public void setPowerType(PowerType powerType) {
+        this.powerType = powerType;
     }
 
     public Integer getBattingPoints() {
@@ -71,35 +93,27 @@ public class Lockin {
         this.bonusPoints = bonusPoints;
     }
 
-    public Squad getSquad() {
-        return squad;
-    }
-
-    public void setSquad(Squad squad) {
-        this.squad = squad;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
     public Match getMatch() {
         return match;
     }
 
-    public void setMatch(Match match) {
-        this.match = match;
+    public void setMatch(Match matchByMatchId) {
+        this.match = matchByMatchId;
     }
 
-    public PowerType getPowerType() {
-        return powerType;
+    public Squad getSquad() {
+        return squad;
     }
 
-    public void setPowerType(PowerType powerType) {
-        this.powerType = powerType;
+    public void setSquad(Squad squadBySquadId) {
+        this.squad = squadBySquadId;
+    }
+
+    public TournamentTeamPlayer getTournamentTeamPlayer() {
+        return tournamentTeamPlayer;
+    }
+
+    public void setTournamentTeamPlayer(TournamentTeamPlayer tournamentTeamPlayerByTournamentTeamPlayerId) {
+        this.tournamentTeamPlayer = tournamentTeamPlayerByTournamentTeamPlayerId;
     }
 }

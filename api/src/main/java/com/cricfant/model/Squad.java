@@ -1,42 +1,49 @@
 package com.cricfant.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import javax.persistence.*;
 import java.util.Set;
 
 @Entity
-public class Squad{
+@Table(name = "squad")
+public class Squad implements Comparable<Squad> {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Basic
+    @Column(name = "name", nullable = false, length = 64)
     private String name;
-    @JsonBackReference("user_squads")
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+
+    @Basic
+    @Column(name = "subs_left", nullable = false)
     private Integer subsLeft;
-    @ManyToOne
-    @JoinColumn(name = "tournament_id")
-    private Tournament tournament;
-    @JsonManagedReference("squad_squadPlayers")
-    @OneToMany(mappedBy = "squad", fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    private Set<SquadPlayer> squadPlayers;
-    @ManyToMany(fetch = FetchType.EAGER)
+
+    @Basic
+    @Column(name = "points", nullable = false)
+    private Integer points;
+
+    @ManyToMany
     @JoinTable(name = "league_squad",
             joinColumns = @JoinColumn(name = "squad_id"),
             inverseJoinColumns = @JoinColumn(name = "league_id"))
     @OrderBy
     private Set<League> leagues;
-    @JsonManagedReference("squad_lockins")
+
     @OneToMany(mappedBy = "squad")
-    @EqualsAndHashCode.Exclude
     private Set<Lockin> lockins;
-    private Integer points;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "tournament_id", referencedColumnName = "id", nullable = false)
+    private Tournament tournament;
+
+    @OneToMany(mappedBy = "squad", fetch = FetchType.LAZY)
+    private Set<SquadPlayer> squadPlayers;
 
     public Integer getId() {
         return id;
@@ -54,14 +61,6 @@ public class Squad{
         this.name = name;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public Integer getSubsLeft() {
         return subsLeft;
     }
@@ -70,20 +69,12 @@ public class Squad{
         this.subsLeft = subsLeft;
     }
 
-    public Tournament getTournament() {
-        return tournament;
+    public Integer getPoints() {
+        return points;
     }
 
-    public void setTournament(Tournament tournament) {
-        this.tournament = tournament;
-    }
-
-    public Set<SquadPlayer> getSquadPlayers() {
-        return squadPlayers;
-    }
-
-    public void setSquadPlayers(Set<SquadPlayer> squadPlayers) {
-        this.squadPlayers = squadPlayers;
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 
     public Set<League> getLeagues() {
@@ -98,15 +89,36 @@ public class Squad{
         return lockins;
     }
 
-    public void setLockins(Set<Lockin> lockins) {
-        this.lockins = lockins;
+    public void setLockins(Set<Lockin> lockinsById) {
+        this.lockins = lockinsById;
     }
 
-    public Integer getPoints() {
-        return points;
+    public User getUser() {
+        return user;
     }
 
-    public void setPoints(Integer points) {
-        this.points = points;
+    public void setUser(User userByUserId) {
+        this.user = userByUserId;
+    }
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    public void setTournament(Tournament tournamentByTournamentId) {
+        this.tournament = tournamentByTournamentId;
+    }
+
+    public Set<SquadPlayer> getSquadPlayers() {
+        return squadPlayers;
+    }
+
+    public void setSquadPlayers(Set<SquadPlayer> squadPlayersById) {
+        this.squadPlayers = squadPlayersById;
+    }
+
+    @Override
+    public int compareTo(Squad o) {
+        return this.points.compareTo(o.points);
     }
 }

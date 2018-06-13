@@ -2,15 +2,18 @@ package com.cricfant.service;
 
 import com.cricfant.constant.Dismissal;
 import com.cricfant.constant.MatchResult;
-import com.cricfant.dto.*;
+import com.cricfant.dto.MatchDto;
+import com.cricfant.dto.PlayerDto;
+import com.cricfant.dto.PointsDto;
+import com.cricfant.dto.TeamDto;
 import com.cricfant.model.Match;
-import com.cricfant.model.MatchPerf;
-import com.cricfant.model.Player;
+import com.cricfant.model.MatchPerformance;
 import com.cricfant.model.Tournament;
+import com.cricfant.model.TournamentTeamPlayer;
 import com.cricfant.repository.MatchPerfRepository;
 import com.cricfant.repository.MatchRepository;
-import com.cricfant.repository.PlayerRepository;
 import com.cricfant.repository.TournamentRepository;
+import com.cricfant.repository.TournamentTeamPlayerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -39,7 +42,7 @@ public class MatchService {
     @Autowired
     MatchRepository matchRepository;
     @Autowired
-    PlayerRepository playerRepository;
+    TournamentTeamPlayerRepository tournamentTeamPlayerRepository;
     @Autowired
     MatchPerfRepository matchPerfRepository;
 
@@ -47,12 +50,13 @@ public class MatchService {
     private static final Pattern stumpedPattern = Pattern.compile("^st (.*) b (.*)$");
     private static final Pattern lbwPattern = Pattern.compile("^lbw b (.*)$");
     private static final Pattern hitWicketPattern = Pattern.compile("^hit wicket b (.*)$");
-    private static final Pattern playerIdPattern = Pattern.compile("^.*/player/(\\d+).*$");
+    private static final Pattern playerExtIdPattern = Pattern.compile("^.*/player/(\\d+).*$");
     private static final Pattern cAndBPattern = Pattern.compile("^c & b (.*)$");
     private static final Pattern caughtPattern = Pattern.compile("^c (.*) b (.*)$");
     private static final Pattern bowledPattern = Pattern.compile("^b (.*)$");
 
     public Optional<Match> getNextMatch(Integer tournamentId) {
+        // TODO optimize query
         Tournament tournament = tournamentRepository.findById(tournamentId).get();
         List<Match> matches = tournament.getMatches().stream()
                 .filter(match -> !match.getLockedIn())
@@ -65,6 +69,7 @@ public class MatchService {
     }
 
     public Optional<Match> getLastMatch(Integer tournamentId) {
+        // TODO optimize query
         Tournament tournament = tournamentRepository.findById(tournamentId).get();
         List<Match> matches = tournament.getMatches().stream()
                 .filter(match -> match.getLockedIn())
@@ -78,12 +83,12 @@ public class MatchService {
 
     public MatchDto processScoresForMatch(String url, Integer matchId) throws IOException {
         Match m = matchRepository.findById(matchId).get();
-        List<MatchPerf> matchPerfs = getMatchPerfs(url, m);
-        calculatePoints(matchPerfs);
-        Set<MatchPerf> existingPerfs = matchPerfRepository.findAllByMatchId(matchId);
+        List<MatchPerformance> matchPerformances = getMatchPerfs(url, m);
+        calculatePoints(matchPerformances);
+        Set<MatchPerformance> existingPerfs = matchPerfRepository.findAllByMatchId(matchId);
         matchPerfRepository.deleteAll(existingPerfs);
         matchPerfRepository.flush();
-        matchPerfRepository.saveAll(matchPerfs);
+        matchPerfRepository.saveAll(matchPerformances);
         m.setScoreUpdated(true);
         return getFromMatch(m);
     }
@@ -94,8 +99,8 @@ public class MatchService {
         return getFromMatch(match);
     }
 
-    private void calculatePoints(List<MatchPerf> matchPerfs) {
-        matchPerfs.forEach(matchPerf -> {
+    private void calculatePoints(List<MatchPerformance> matchPerformances) {
+        matchPerformances.forEach(matchPerf -> {
             matchPerf.setBattingPoints(getBattingPoints(matchPerf));
             matchPerf.setBowlingPoints(getBowlingPoints(matchPerf));
             matchPerf.setFieldingPoints(getFieldingPoints(matchPerf));
@@ -103,7 +108,7 @@ public class MatchService {
         });
     }
 
-    private Integer getBattingPoints(MatchPerf mp) {
+    private Integer getBattingPoints(MatchPerformance mp) {
 
         Integer battingPoints = 0;
         Integer runsScored = mp.getRunsScored() == null ? 0 : mp.getRunsScored();
@@ -130,7 +135,7 @@ public class MatchService {
         return battingPoints;
     }
 
-    private Integer getBowlingPoints(MatchPerf mp) {
+    private Integer getBowlingPoints(MatchPerformance mp) {
         Integer bowlingPoints = 0;
         Integer wicketsTaken = mp.getWicketsTaken() == null ? 0 : mp.getWicketsTaken();
         Integer ballsBowled = mp.getBallsBowled() == null ? 0 : mp.getBallsBowled();
@@ -160,7 +165,7 @@ public class MatchService {
         return bowlingPoints;
     }
 
-    private Integer getFieldingPoints(MatchPerf mp) {
+    private Integer getFieldingPoints(MatchPerformance mp) {
         Integer fieldingPoints = 0;
         Integer catches = mp.getCatches() == null ? 0 : mp.getCatches();
         Integer runOuts = mp.getRunOuts() == null ? 0 : mp.getRunOuts();
@@ -173,7 +178,7 @@ public class MatchService {
         return fieldingPoints;
     }
 
-    private Integer getBonusPoints(MatchPerf mp) {
+    private Integer getBonusPoints(MatchPerformance mp) {
         Integer bonusPoints = 0;
         MatchResult result = mp.getMatch().getResult();
         if (result != null) {
@@ -189,9 +194,9 @@ public class MatchService {
         return bonusPoints;
     }
 
-    private List<MatchPerf> getMatchPerfs(String url, Match m) throws IOException {
+    private List<MatchPerformance> getMatchPerfs(String url, Match m) throws IOException {
         Document document = Jsoup.parse(new URL(url), 10000);
-        Map<String, MatchPerf> scoresMap = new LinkedHashMap<>();
+        Map<String, MatchPerformance> scoresMap = new LinkedHashMap<>();
         Elements header = document.select("article:nth-of-type(1) .wrap.header");
         String headerText = header.select("div:nth-of-type(4)").text();
         boolean hasMinutes = headerText.equals("M");
@@ -214,19 +219,19 @@ public class MatchService {
         Elements innings2BowlingScores = document.select("article:nth-of-type(2) .scorecard-section.bowling");
         getBowlingScores(innings2BowlingScores, scoresMap, m, 1);
 
-        List<MatchPerf> team1MatchPerfs = scoresMap.values().stream()
+        List<MatchPerformance> team1MatchPerformances = scoresMap.values().stream()
                 .filter(MatchPerf -> MatchPerf.getTeamNum().equals(1))
                 .collect(Collectors.toList());
 
-        List<MatchPerf> team2MatchPerfs = scoresMap.values().stream()
+        List<MatchPerformance> team2MatchPerformances = scoresMap.values().stream()
                 .filter(MatchPerf -> MatchPerf.getTeamNum().equals(2))
                 .collect(Collectors.toList());
 
-        for (MatchPerf MatchPerf : scoresMap.values()) {
-            if (MatchPerf.getDismissal() == null) {
-                MatchPerf.setDismissal(Dismissal.DNB);
-                MatchPerf.setBatPos(Integer.MAX_VALUE);
-                log.warn("UNKNOWN DISMISSAL FOR: " + MatchPerf);
+        for (MatchPerformance MatchPerformance : scoresMap.values()) {
+            if (MatchPerformance.getDismissal() == null) {
+                MatchPerformance.setDismissal(Dismissal.DNB);
+                MatchPerformance.setBatPos(Integer.MAX_VALUE);
+                log.warn("UNKNOWN DISMISSAL FOR: " + MatchPerformance);
             }
         }
 
@@ -234,7 +239,7 @@ public class MatchService {
         Element mom = document.select(".gp__cricket__player-match__player__detail__link").first();
         if (mom != null) {
             String momLink = mom.attr("href");
-            Matcher matcher = playerIdPattern.matcher(momLink);
+            Matcher matcher = playerExtIdPattern.matcher(momLink);
             if (matcher.matches()) {
                 momId = Integer.valueOf(matcher.group(1));
             } else {
@@ -242,57 +247,57 @@ public class MatchService {
             }
         }
 
-        List<MatchPerf> sortedMatchPerfs = scoresMap.values().stream().sorted(
-                Comparator.comparingInt(MatchPerf::getTeamNum)
-                        .thenComparingInt(MatchPerf::getBatPos)).collect(Collectors.toList());
+        List<MatchPerformance> sortedMatchPerformances = scoresMap.values().stream().sorted(
+                Comparator.comparingInt(MatchPerformance::getTeamNum)
+                        .thenComparingInt(MatchPerformance::getBatPos)).collect(Collectors.toList());
 
-        for (MatchPerf matchPerf : sortedMatchPerfs) {
-            List<MatchPerf> scoresToSearch = matchPerf.getTeamNum().equals(1) ? team2MatchPerfs : team1MatchPerfs;
-            if (matchPerf.getCaughtByName() != null) {
-                Integer playerId = findPlayer(matchPerf.getCaughtByName(), scoresToSearch);
-                if (playerId == null) {
-                    throw new IllegalStateException("NO MATCH FOUND FOR CAUGHTBY " + matchPerf.getCaughtByName());
+        for (MatchPerformance matchPerformance : sortedMatchPerformances) {
+            List<MatchPerformance> scoresToSearch = matchPerformance.getTeamNum().equals(1) ? team2MatchPerformances : team1MatchPerformances;
+            if (matchPerformance.getCaughtByName() != null) {
+                Integer tournamentTeamPlayerId = findPlayer(matchPerformance.getCaughtByName(), scoresToSearch);
+                if (tournamentTeamPlayerId == null) {
+                    throw new IllegalStateException("NO MATCH FOUND FOR CAUGHTBY " + matchPerformance.getCaughtByName());
                 }
-                MatchPerf caughtBy = getByPlayerId(sortedMatchPerfs, playerId);
+                MatchPerformance caughtBy = getByTournamentTeamPlayerId(sortedMatchPerformances, tournamentTeamPlayerId);
                 Integer catches = caughtBy.getCatches() == null ? 0 : caughtBy.getCatches();
                 caughtBy.setCatches(++catches);
             }
-            if (matchPerf.getRunOutByName() != null) {
-                Integer playerId = findPlayer(matchPerf.getRunOutByName(), scoresToSearch);
-                if (playerId == null) {
-                    throw new IllegalStateException("NO MATCH FOUND FOR RUNOUTBY " + matchPerf.getRunOutByName());
+            if (matchPerformance.getRunOutByName() != null) {
+                Integer tournamentTeamPlayerId = findPlayer(matchPerformance.getRunOutByName(), scoresToSearch);
+                if (tournamentTeamPlayerId == null) {
+                    throw new IllegalStateException("NO MATCH FOUND FOR RUNOUTBY " + matchPerformance.getRunOutByName());
                 }
-                MatchPerf runOutBy = getByPlayerId(sortedMatchPerfs, playerId);
+                MatchPerformance runOutBy = getByTournamentTeamPlayerId(sortedMatchPerformances, tournamentTeamPlayerId);
                 Integer runOuts = runOutBy.getRunOuts() == null ? 0 : runOutBy.getRunOuts();
                 runOutBy.setRunOuts(++runOuts);
             }
-            if (matchPerf.getStumpedByName() != null) {
-                Integer playerId = findPlayer(matchPerf.getStumpedByName(), scoresToSearch);
-                if (playerId == null) {
-                    throw new IllegalStateException("NO MATCH FOUND FOR STUMPEDBY " + matchPerf.getStumpedByName());
+            if (matchPerformance.getStumpedByName() != null) {
+                Integer tournamentTeamPlayerId = findPlayer(matchPerformance.getStumpedByName(), scoresToSearch);
+                if (tournamentTeamPlayerId == null) {
+                    throw new IllegalStateException("NO MATCH FOUND FOR STUMPEDBY " + matchPerformance.getStumpedByName());
                 }
-                MatchPerf stumpedBy = getByPlayerId(sortedMatchPerfs, playerId);
+                MatchPerformance stumpedBy = getByTournamentTeamPlayerId(sortedMatchPerformances, tournamentTeamPlayerId);
                 Integer stumpings = stumpedBy.getStumpings() == null ? 0 : stumpedBy.getStumpings();
                 stumpedBy.setStumpings(++stumpings);
             }
 
-            if (matchPerf.getPlayer().getExtId().equals(momId)) {
-                matchPerf.setMom(true);
+            if (matchPerformance.getTournamentTeamPlayer().getPlayer().getExtId().equals(momId)) {
+                matchPerformance.setMom(true);
             }
         }
-        return sortedMatchPerfs;
+        return sortedMatchPerformances;
     }
 
-    private MatchPerf getByPlayerId(List<MatchPerf> matchPerfs, Integer playerId) {
-        for (MatchPerf matchPerf : matchPerfs) {
-            if (matchPerf.getPlayer().getId().equals(playerId)) {
-                return matchPerf;
+    private MatchPerformance getByTournamentTeamPlayerId(List<MatchPerformance> matchPerformances, Integer tournamentTeamPlayerId) {
+        for (MatchPerformance matchPerformance : matchPerformances) {
+            if (matchPerformance.getTournamentTeamPlayer().getId().equals(tournamentTeamPlayerId)) {
+                return matchPerformance;
             }
         }
         return null;
     }
 
-    private void getBowlingScores(Elements scores, Map<String, MatchPerf> scoresMap, Match match, Integer teamNum) {
+    private void getBowlingScores(Elements scores, Map<String, MatchPerformance> scoresMap, Match match, Integer teamNum) {
         Elements bScores = scores.select("tbody > tr");
         bScores.forEach(row -> {
             Element playerLink = row.select("td:nth-of-type(1) > a").get(0);
@@ -303,22 +308,23 @@ public class MatchService {
                     .replaceAll(",", "")
                     .trim();
             String playerExtId;
-            Matcher matcher = playerIdPattern.matcher(playerHref);
+            Matcher matcher = playerExtIdPattern.matcher(playerHref);
             if (matcher.matches()) {
                 playerExtId = matcher.group(1);
             } else {
                 throw new IllegalStateException("PLAYER ID NOT FOUND IN: " + playerHref);
             }
 
-            MatchPerf mp;
+            MatchPerformance mp;
             if (scoresMap.containsKey(playerExtId)) {
                 mp = scoresMap.get(playerExtId);
             } else {
-                mp = new MatchPerf();
+                mp = new MatchPerformance();
                 mp.setMatch(match);
                 try {
-                    Player player = playerRepository.findByExtId(Integer.valueOf(playerExtId)).get();
-                    mp.setPlayer(player);
+                    TournamentTeamPlayer tournamentTeamPlayer =
+                            tournamentTeamPlayerRepository.findByPlayerExtId(Integer.valueOf(playerExtId)).get();
+                    mp.setTournamentTeamPlayer(tournamentTeamPlayer);
                 } catch (Exception e) {
                     throw new IllegalStateException("no player " + playerShortName + " (" + playerExtId + ")");
                 }
@@ -349,7 +355,7 @@ public class MatchService {
         });
     }
 
-    private void getDNB(Elements team1DNB, Map<String, MatchPerf> scoresMap,
+    private void getDNB(Elements team1DNB, Map<String, MatchPerformance> scoresMap,
                         Match match, Integer teamNum) {
         Elements playerLinks = team1DNB.select("a");
         playerLinks.forEach(element -> {
@@ -360,21 +366,22 @@ public class MatchService {
                     .replaceAll("†", "")
                     .replaceAll(",", "")
                     .trim();
-            Matcher matcher = playerIdPattern.matcher(playerLink);
+            Matcher matcher = playerExtIdPattern.matcher(playerLink);
             if (matcher.matches()) {
                 playerExtId = matcher.group(1);
             } else {
                 throw new IllegalStateException("PLAYER ID NOT FOUND IN: " + playerLink);
             }
-            MatchPerf mp;
+            MatchPerformance mp;
             if (scoresMap.containsKey(playerExtId)) {
                 mp = scoresMap.get(playerExtId);
             } else {
-                mp = new MatchPerf();
+                mp = new MatchPerformance();
                 mp.setMatch(match);
                 try {
-                    Player player = playerRepository.findByExtId(Integer.valueOf(playerExtId)).get();
-                    mp.setPlayer(player);
+                    TournamentTeamPlayer tournamentTeamPlayer =
+                            tournamentTeamPlayerRepository.findByPlayerExtId(Integer.valueOf(playerExtId)).get();
+                    mp.setTournamentTeamPlayer(tournamentTeamPlayer);
                 } catch (Exception e) {
                     throw new IllegalStateException("no player " + playerShortName + " (" + playerExtId + ")");
                 }
@@ -387,28 +394,29 @@ public class MatchService {
         });
     }
 
-    private void getBattingScores(Elements scores, Map<String, MatchPerf> scoresMap, Match match, Integer teamNum, boolean hasMinutes) {
+    private void getBattingScores(Elements scores, Map<String, MatchPerformance> scoresMap, Match match, Integer teamNum, boolean hasMinutes) {
         int index = 1;
         for (Element e : scores) {
             String playerLink = e.select(".cell.batsmen a").attr("href");
             String playerShortName = e.select(".cell.batsmen a").text()
                     .replaceAll("\\(c\\)", "").replaceAll("†", "").trim();
             String playerExtId;
-            Matcher matcher = playerIdPattern.matcher(playerLink);
+            Matcher matcher = playerExtIdPattern.matcher(playerLink);
             if (matcher.matches()) {
                 playerExtId = matcher.group(1);
             } else {
                 throw new IllegalStateException("PLAYER ID NOT FOUND IN: " + playerLink);
             }
-            MatchPerf mp;
+            MatchPerformance mp;
             if (scoresMap.containsKey(playerExtId)) {
                 mp = scoresMap.get(playerExtId);
             } else {
-                mp = new MatchPerf();
+                mp = new MatchPerformance();
                 mp.setMatch(match);
                 try {
-                    Player player = playerRepository.findByExtId(Integer.valueOf(playerExtId)).get();
-                    mp.setPlayer(player);
+                    TournamentTeamPlayer tournamentTeamPlayer =
+                            tournamentTeamPlayerRepository.findByPlayerExtId(Integer.valueOf(playerExtId)).get();
+                    mp.setTournamentTeamPlayer(tournamentTeamPlayer);
                 } catch (Exception ex) {
                     throw new IllegalStateException("no player " + playerShortName + " (" + playerExtId + ")");
                 }
@@ -534,9 +542,9 @@ public class MatchService {
         throw new IllegalArgumentException("invalid overs: " + overs);
     }
 
-    private Integer findPlayer(String nameToMatch, List<MatchPerf> MatchPerfs) {
-        List<MatchPerf> matchPerfs = new ArrayList<>();
-        for (MatchPerf perf : MatchPerfs) {
+    private Integer findPlayer(String nameToMatch, List<MatchPerformance> matchPerformances) {
+        List<MatchPerformance> matchPerfs = new ArrayList<>();
+        for (MatchPerformance perf : matchPerformances) {
             String name = perf.getPlayerShortName();
             if (name.equals(nameToMatch)) {
                 if (!matchPerfs.contains(perf)) {
@@ -544,7 +552,7 @@ public class MatchService {
                 }
             }
         }
-        for (MatchPerf ms : MatchPerfs) {
+        for (MatchPerformance ms : matchPerformances) {
             String name = ms.getPlayerShortName().replaceFirst(".*?\\s+", "");
             if (name.equals(nameToMatch)) {
                 if (!matchPerfs.contains(ms)) {
@@ -556,35 +564,36 @@ public class MatchService {
             return null;
         }
         if (matchPerfs.size() == 1) {
-            return matchPerfs.get(0).getPlayer().getId();
+            return matchPerfs.get(0).getTournamentTeamPlayer().getId();
         }
-        log.warn("TOO MANY MATCHES FOR: " + nameToMatch + "," + MatchPerfs.get(0).getId());
+        log.warn("TOO MANY MATCHES FOR: " + nameToMatch + "," + matchPerformances.get(0).getId());
         return null;
     }
 
-    private MatchDto getFromMatch(Match m){
+    private MatchDto getFromMatch(Match m) {
         MatchDto mDto = new MatchDto();
-        BeanUtils.copyProperties(m,mDto);
+        BeanUtils.copyProperties(m, mDto);
         mDto.setTournamentId(m.getTournament().getId());
         mDto.setVenue(m.getVenue().getName());
         List<TeamDto> teams = new ArrayList<>();
         TeamDto team1 = new TeamDto();
         TeamDto team2 = new TeamDto();
-        BeanUtils.copyProperties(m.getTeam1(),team1);
-        BeanUtils.copyProperties(m.getTeam2(),team2);
+        BeanUtils.copyProperties(m.getTeam1(), team1);
+        BeanUtils.copyProperties(m.getTeam2(), team2);
         teams.add(team1);
         teams.add(team2);
         mDto.setTeams(teams);
         List<PlayerDto> matchPerfDtos = new ArrayList<>();
-        List<MatchPerf> matchPerfs = m.getMatchPerfs();
-        matchPerfs.forEach(mp -> {
+        Collection<MatchPerformance> matchPerformances = m.getMatchPerformances();
+        matchPerformances.forEach(mp -> {
             PlayerDto pDto = new PlayerDto();
-            BeanUtils.copyProperties(mp.getPlayer(),pDto);
+            BeanUtils.copyProperties(mp.getTournamentTeamPlayer(), pDto);
+            BeanUtils.copyProperties(mp.getTournamentTeamPlayer().getPlayer(), pDto);
             PointsDto pointsDto = new PointsDto();
-            BeanUtils.copyProperties(mp,pointsDto);
-            pointsDto.setTotalPoints(pointsDto.getBattingPoints()+
-                    pointsDto.getBowlingPoints()+
-                    pointsDto.getFieldingPoints()+
+            BeanUtils.copyProperties(mp, pointsDto);
+            pointsDto.setTotalPoints(pointsDto.getBattingPoints() +
+                    pointsDto.getBowlingPoints() +
+                    pointsDto.getFieldingPoints() +
                     pointsDto.getBonusPoints());
             pDto.setPoints(pointsDto);
             matchPerfDtos.add(pDto);

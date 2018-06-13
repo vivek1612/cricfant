@@ -4,23 +4,23 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity
-@Table(name = "player")
-public class Player {
+@Table(name = "tournament_team")
+public class TournamentTeam {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Basic
-    @Column(name = "name", nullable = false, length = 256)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "team_id", referencedColumnName = "id", nullable = false)
+    private Team team;
 
-    @Basic
-    @Column(name = "ext_id")
-    private Integer extId;
+    @ManyToOne
+    @JoinColumn(name = "tournament_id", referencedColumnName = "id", nullable = false)
+    private Tournament tournament;
 
-    @OneToMany(mappedBy = "player")
+    @OneToMany(mappedBy = "tournamentTeam")
     private Set<TournamentTeamPlayer> tournamentTeamPlayers;
 
     public Integer getId() {
@@ -31,20 +31,20 @@ public class Player {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Team getTeam() {
+        return team;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTeam(Team teamByTeamId) {
+        this.team = teamByTeamId;
     }
 
-    public Integer getExtId() {
-        return extId;
+    public Tournament getTournament() {
+        return tournament;
     }
 
-    public void setExtId(Integer extId) {
-        this.extId = extId;
+    public void setTournament(Tournament tournamentByTournamentId) {
+        this.tournament = tournamentByTournamentId;
     }
 
     public Set<TournamentTeamPlayer> getTournamentTeamPlayers() {

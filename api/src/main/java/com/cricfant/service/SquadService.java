@@ -19,13 +19,13 @@ public class SquadService {
     @Autowired
     MatchService matchService;
     @Autowired
-    PlayerRepository playerRepository;
-    @Autowired
     MatchRepository matchRepository;
     @Autowired
     LockinRepository lockinRepository;
     @Autowired
     SquadRepository squadRepository;
+    @Autowired
+    TournamentTeamPlayerRepository tournamentTeamPlayerRepository;
     @Autowired
     SquadPlayerRepository squadPlayerRepository;
     @Autowired
@@ -55,13 +55,14 @@ public class SquadService {
         } else {
             throw new IllegalStateException("Tournament is over");
         }
-        List<SquadPlayer> squadPlayers = new ArrayList<>();
+        Set<SquadPlayer> squadPlayers = new HashSet<>();
         validatePlayers(squadDto, tournament);
         validateSquad(squadDto);
-        squadDto.getPlayers().forEach(player -> {
+        squadDto.getPlayers().forEach(playerDto -> {
             SquadPlayer sPlayer = new SquadPlayer();
-            sPlayer.setPlayer(playerRepository.findById(player.getId()).get());
-            sPlayer.setPowerType(player.getPowerType());
+            sPlayer.setTournamentTeamPlayer(tournamentTeamPlayerRepository
+                    .findById(playerDto.getId()).get());
+            sPlayer.setPowerType(playerDto.getPowerType());
             sPlayer.setSquad(squad);
             squadPlayers.add(sPlayer);
         });
@@ -84,12 +85,13 @@ public class SquadService {
                         nonLockedInSubsLeft - (Integer.max(0, subs - freeSubs)));
             }
         }
-        if (squad.getSquadPlayers() != null && squad.getSquadPlayers().size() > 0) {
+        /*if (squad.getSquadPlayers() != null && squad.getSquadPlayers().size() > 0) {
             squadPlayerRepository.deleteAll(squad.getSquadPlayers());
-        }
-        squadPlayerRepository.flush();
-        squadPlayerRepository.saveAll(squadPlayers);
-        squadPlayerRepository.flush();
+            squadPlayerRepository.flush();
+        }*/
+        squad.setSquadPlayers(squadPlayers);
+//        squadPlayerRepository.saveAll(squadPlayers);
+//        squadPlayerRepository.flush();
         SquadDto dto = getFromSquad(squad);
         dto.setPlayers(getPlayersFromSquad(squad));
         dto.setSubsLeft(nonLockedInSubsLeft);
@@ -110,8 +112,11 @@ public class SquadService {
         int bowlCount = 0;
         int keeperCount = 0;
         int arCount = 0;
+        int cost = 0;
 
         for (PlayerDto player : players) {
+            TournamentTeamPlayer p = tournamentTeamPlayerRepository.findById(player.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("no such player: " + player.getId()));
             if (!uniquePlayerIds.add(player.getId())) {
                 throw new IllegalArgumentException("duplicate player: " + player.getId());
             }
@@ -121,8 +126,8 @@ public class SquadService {
             if (player.getPowerType() != null && player.getPowerType().equals(PowerType.BOWLING)) {
                 bowlingPPCount++;
             }
-            Player p = playerRepository.findById(player.getId()).get();
-            Team team = p.getTeam();
+            cost += p.getPrice();
+            Team team = p.getTournamentTeam().getTeam();
             teamMap.putIfAbsent(team, 0);
             teamMap.put(team, teamMap.get(team) + 1);
             switch (p.getSkill()) {
@@ -148,6 +153,13 @@ public class SquadService {
             }
         }
 
+        Tournament tournament = tournamentRepository.findById(squad.getTournamentId())
+                .orElseThrow(() -> new IllegalArgumentException("no such tournament: "
+                        + squad.getTournamentId()));
+        if (cost > tournament.getSquadBudget()) {
+            throw new IllegalArgumentException("budget exceeded: " + cost);
+        }
+
         if (battingPPCount != 1 || bowlingPPCount != 1) {
             throw new IllegalArgumentException("battingPP: " + battingPPCount + " bowlingPP: " + bowlingPPCount);
         }
@@ -170,10 +182,11 @@ public class SquadService {
         List<Integer> playerIds = squad.getPlayers().stream()
                 .map(PlayerDto::getId)
                 .collect(Collectors.toList());
-        List<Team> teams = tournament.getTeams();
-        teams.forEach(team -> {
-            team.getPlayers()
-                    .stream().mapToInt(value -> value.getId()).forEach(validPlayerIds::add);
+        Collection<TournamentTeam> tournamentTeams = tournament.getTournamentTeams();
+        tournamentTeams.forEach(tournamentTeam -> {
+            tournamentTeam.getTournamentTeamPlayers()
+                    .stream().mapToInt(tournamentTeamPlayer ->
+                    tournamentTeamPlayer.getId()).forEach(validPlayerIds::add);
         });
         if (!validPlayerIds.containsAll(playerIds)) {
             List<Integer> invalidPlayerIds = new ArrayList<>(playerIds);
@@ -202,7 +215,7 @@ public class SquadService {
         Set<Lockin> lockedInSquad = lockinRepository
                 .findAllByMatchIdAndSquadId(lastMatch.getId(), squad.getId());
         if ((lockedInSquad != null) && lockedInSquad.size() != 0) { // if not new squad
-            Set<SquadPlayer> nonLockedInSquad = squad.getSquadPlayers();
+            Collection<SquadPlayer> nonLockedInSquad = squad.getSquadPlayers();
             log.debug("nonLockedInSquad = " + nonLockedInSquad);
             Integer subsSinceLastLockin = calculateSubs(lockedInSquad, nonLockedInSquad);
             log.debug("subsSinceLastLockin = " + subsSinceLastLockin);
@@ -218,10 +231,12 @@ public class SquadService {
     public Integer calculateSubs(Collection<Lockin> lockedInSquad,
                                  Collection<SquadPlayer> nonLockedInSquad) {
         List<Integer> currentSquadPlayerIds = lockedInSquad.stream()
-                .map(csLockin -> csLockin.getPlayer().getId()).collect(Collectors.toList());
+                .map(csLockin -> csLockin.getTournamentTeamPlayer()
+                        .getId()).collect(Collectors.toList());
         log.debug("currentSquadPlayerIds = " + currentSquadPlayerIds);
         List<Integer> newSquadPlayerIds = nonLockedInSquad.stream()
-                .map(mp -> mp.getPlayer().getId()).collect(Collectors.toList());
+                .map(mp -> mp.getTournamentTeamPlayer()
+                        .getId()).collect(Collectors.toList());
         log.debug("newSquadPlayerIds = " + newSquadPlayerIds);
         newSquadPlayerIds.removeAll(currentSquadPlayerIds);
         log.debug("newSquadPlayerIds = " + newSquadPlayerIds);
@@ -231,10 +246,11 @@ public class SquadService {
     public List<SquadDto> getSquads(Integer userId) {
         User user = userRepository.findById(userId).get();
         List<SquadDto> squadDtos = new ArrayList<>();
-        List<Squad> squads = user.getSquads();
+        Set<Squad> squads = squadRepository.findAllByUserId(userId);
+//        Collection<Squad> squads = user.getSquads();
         squads.forEach(squad -> {
             SquadDto dto = getFromSquad(squad);
-            dto.setPlayers(getPlayersFromSquad(squad));
+//            dto.setPlayers(getPlayersFromSquad(squad));
             squadDtos.add(dto);
         });
         return squadDtos;
@@ -248,13 +264,15 @@ public class SquadService {
         s.setSubsLeft(squad.getSubsLeft());
         s.setPoints(squad.getPoints());
         s.setLastMatchPoints(getLastMatchPoints(squad));
+        matchService.getNextMatch(squad.getTournament().getId())
+                .ifPresent(match -> s.setForMatchId(match.getId()));
         List<LeagueForSquadDto> leagues = new ArrayList<>();
         if (squad.getLeagues() != null) {
             squad.getLeagues().forEach(league -> {
                 LeagueForSquadDto dto = new LeagueForSquadDto();
                 dto.setId(league.getId());
                 dto.setName(league.getName());
-                int i = league.getSquads().indexOf(squad);
+                int i = league.getSquads().headSet(squad).size();
                 dto.setRank(i + 1);
                 leagues.add(dto);
             });
@@ -273,9 +291,12 @@ public class SquadService {
         if (lockins == null || lockins.size() == 0) {
             return 0;
         }
-        Integer totalPoints = lockins.stream().collect(Collectors.summingInt(lockin -> lockin.getBattingPoints()
-                + lockin.getBowlingPoints()
-                + lockin.getFieldingPoints() + lockin.getBonusPoints()));
+        Integer totalPoints = lockins.stream().mapToInt(lockin ->
+                (lockin.getBattingPoints() == null ? 0 : lockin.getBattingPoints())
+                        + (lockin.getBowlingPoints() == null ? 0 : lockin.getBowlingPoints())
+                        + (lockin.getFieldingPoints() == null ? 0 : lockin.getFieldingPoints())
+                        + (lockin.getBonusPoints() == null ? 0 : lockin.getBonusPoints()))
+                .sum();
         return totalPoints;
     }
 
@@ -285,12 +306,12 @@ public class SquadService {
         Set<Lockin> lockins = lockinRepository
                 .findAllByMatchIdAndSquadId(match.getId(), squad.getId());
         lockins.forEach(lockin -> {
-            PlayerDto p = new PlayerDto();
-            Player player = lockin.getPlayer();
-            p.setId(player.getId());
-            p.setName(player.getName());
-            p.setPowerType(lockin.getPowerType());
-            p.setSkill(lockin.getPlayer().getSkill());
+            PlayerDto playerDto = new PlayerDto();
+            TournamentTeamPlayer tournamentTeamPlayer = lockin.getTournamentTeamPlayer();
+            playerDto.setId(tournamentTeamPlayer.getId());
+            playerDto.setName(tournamentTeamPlayer.getPlayer().getName());
+            playerDto.setPowerType(lockin.getPowerType());
+            playerDto.setSkill(tournamentTeamPlayer.getSkill());
             PointsDto pDto = new PointsDto();
             Integer battingPoints = lockin.getBattingPoints() == null ? 0 : lockin.getBattingPoints();
             Integer bowlingPoints = lockin.getBowlingPoints() == null ? 0 : lockin.getBowlingPoints();
@@ -301,14 +322,14 @@ public class SquadService {
             pDto.setFieldingPoints(fieldingPoints);
             pDto.setBonusPoints(bonusPoints);
             pDto.setTotalPoints(battingPoints + bowlingPoints + fieldingPoints + bonusPoints);
-            p.setPoints(pDto);
+            playerDto.setPoints(pDto);
             TeamDto teamDto = new TeamDto();
-            Team team = player.getTeam();
+            Team team = tournamentTeamPlayer.getTournamentTeam().getTeam();
             teamDto.setId(team.getId());
             teamDto.setName(team.getName());
             teamDto.setShortName(team.getShortName());
-            p.setTeam(teamDto);
-            players.add(p);
+            playerDto.setTeam(teamDto);
+            players.add(playerDto);
         });
         players.sort(Comparator
                 .comparing((PlayerDto playerDto) -> playerDto.getSkill().getId())
@@ -322,19 +343,19 @@ public class SquadService {
         List<PlayerDto> players = new ArrayList<>();
         if (squad.getSquadPlayers() != null) {
             squad.getSquadPlayers().forEach(squadPlayer -> {
-                PlayerDto p = new PlayerDto();
-                Player player = squadPlayer.getPlayer();
-                p.setId(player.getId());
-                p.setName(player.getName());
-                p.setPowerType(squadPlayer.getPowerType());
-                p.setSkill(squadPlayer.getPlayer().getSkill());
+                PlayerDto playerDto = new PlayerDto();
+                TournamentTeamPlayer tournamentTeamPlayer = squadPlayer.getTournamentTeamPlayer();
+                playerDto.setId(tournamentTeamPlayer.getId());
+                playerDto.setName(tournamentTeamPlayer.getPlayer().getName());
+                playerDto.setPowerType(squadPlayer.getPowerType());
+                playerDto.setSkill(tournamentTeamPlayer.getSkill());
                 TeamDto teamDto = new TeamDto();
-                Team team = player.getTeam();
+                Team team = tournamentTeamPlayer.getTournamentTeam().getTeam();
                 teamDto.setId(team.getId());
                 teamDto.setName(team.getName());
                 teamDto.setShortName(team.getShortName());
-                p.setTeam(teamDto);
-                players.add(p);
+                playerDto.setTeam(teamDto);
+                players.add(playerDto);
             });
         }
         players.sort(Comparator
@@ -366,11 +387,15 @@ public class SquadService {
     public SquadDto createSquad(Integer userId, SquadDto squadDto) {
         Squad s = new Squad();
         s.setName(squadDto.getName());
-        Tournament tournament = tournamentRepository.findById(squadDto.getTournamentId()).get();
+        Tournament tournament = tournamentRepository.findById(squadDto.getTournamentId())
+                .orElseThrow(() -> new IllegalArgumentException("no such tournament: "
+                        + squadDto.getTournamentId()));
         s.setTournament(tournament);
         s.setSubsLeft(tournament.getTotalSubs());
         s.setPoints(0);
-        s.setUser(userRepository.findById(userId).get());
+        s.setUser(userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("no such user: "
+                        + userId)));
         Squad save = squadRepository.save(s);
         SquadDto dto = setSquad(save.getId(), squadDto, userId);
         return dto;
@@ -383,6 +408,7 @@ public class SquadService {
                 new IllegalArgumentException("no such match"));
         SquadDto dto = getFromSquad(squad);
         dto.setPlayers(getPlayersPoints(squad, match));
+        dto.setForMatchId(matchId);
         return dto;
     }
 }

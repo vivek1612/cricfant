@@ -1,33 +1,48 @@
 package com.cricfant.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
-
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name = "tournament")
 public class Tournament {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
+
+    @Basic
+    @Column(name = "name", nullable = false, length = 32)
     private String name;
-    @JsonManagedReference("tournament_matches")
-    @OneToMany(mappedBy = "tournament")
-    private List<Match> matches;
-    @JsonManagedReference("tournament_leagues")
-    @OneToMany(mappedBy = "tournament")
-    private List<League> leagues;
+
+    @Basic
+    @Column(name = "total_subs", nullable = false)
     private Integer totalSubs;
+
+    @Basic
+    @Column(name = "free_subs", nullable = false)
     private Integer freeSubs;
-    @OneToMany(mappedBy = "tournament")
-    private List<Squad> squads;
-    @ManyToMany
-    @JoinTable(name = "tournament_team",
-            joinColumns = @JoinColumn(name = "tournament_id"),
-            inverseJoinColumns = @JoinColumn(name = "team_id"))
-    private List<Team> teams;
+
+    @Basic
+    @Column(name = "unlimited_subs", nullable = false)
     private Boolean unlimitedSubs;
+
+    @Basic
+    @Column(name = "squad_budget", nullable = false)
+    private Integer squadBudget;
+
+    @OneToMany(mappedBy = "tournament")
+    private Set<League> leagues;
+
+    @OneToMany(mappedBy = "tournament")
+    private Set<Match> matches;
+
+    @OneToMany(mappedBy = "tournament")
+    private Set<Squad> squads;
+
+    @OneToMany(mappedBy = "tournament")
+    private Set<TournamentTeam> tournamentTeams;
 
     public Integer getId() {
         return id;
@@ -43,22 +58,6 @@ public class Tournament {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Match> getMatches() {
-        return matches;
-    }
-
-    public void setMatches(List<Match> matches) {
-        this.matches = matches;
-    }
-
-    public List<League> getLeagues() {
-        return leagues;
-    }
-
-    public void setLeagues(List<League> leagues) {
-        this.leagues = leagues;
     }
 
     public Integer getTotalSubs() {
@@ -77,27 +76,51 @@ public class Tournament {
         this.freeSubs = freeSubs;
     }
 
-    public List<Squad> getSquads() {
-        return squads;
-    }
-
-    public void setSquads(List<Squad> squads) {
-        this.squads = squads;
-    }
-
-    public List<Team> getTeams() {
-        return teams;
-    }
-
-    public void setTeams(List<Team> teams) {
-        this.teams = teams;
-    }
-
     public Boolean getUnlimitedSubs() {
         return unlimitedSubs;
     }
 
     public void setUnlimitedSubs(Boolean unlimitedSubs) {
         this.unlimitedSubs = unlimitedSubs;
+    }
+
+    public Integer getSquadBudget() {
+        return squadBudget;
+    }
+
+    public void setSquadBudget(Integer squadBudget) {
+        this.squadBudget = squadBudget;
+    }
+
+    public Set<League> getLeagues() {
+        return leagues;
+    }
+
+    public void setLeagues(Set<League> leaguesById) {
+        this.leagues = leaguesById;
+    }
+
+    public Set<Match> getMatches() {
+        return matches;
+    }
+
+    public void setMatches(Set<Match> matchesById) {
+        this.matches = matchesById;
+    }
+
+    public Set<Squad> getSquads() {
+        return squads;
+    }
+
+    public void setSquads(Set<Squad> squadsById) {
+        this.squads = squadsById;
+    }
+
+    public Set<TournamentTeam> getTournamentTeams() {
+        return tournamentTeams;
+    }
+
+    public void setTournamentTeams(Set<TournamentTeam> tournamentTeamsById) {
+        this.tournamentTeams = tournamentTeamsById;
     }
 }
