@@ -2,6 +2,7 @@ package com.cricfant.controller;
 
 import com.cricfant.dto.CustomPrincipal;
 import com.cricfant.dto.SquadDto;
+import com.cricfant.model.Squad;
 import com.cricfant.model.User;
 import com.cricfant.repository.SquadRepository;
 import com.cricfant.repository.UserRepository;
@@ -12,10 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
-@SuppressWarnings("Duplicates")
 @RestController
 @RequestMapping("/api/squads")
 public class SquadController {
@@ -29,41 +28,48 @@ public class SquadController {
     @Autowired
     MatchService matchService;
 
-    @GetMapping
-    public ResponseEntity<?> readSquads(@AuthenticationPrincipal CustomPrincipal principal) {
-        List<SquadDto> squads = squadService.getSquads(principal.getId());
-        return ResponseEntity.ok(squads);
-    }
-
-    @PutMapping("/{squadId}")
-    public ResponseEntity<?> setSquad(@AuthenticationPrincipal CustomPrincipal principal,
-                                      @PathVariable("squadId") Integer squadId,
-                                      @RequestBody SquadDto squadDto) {
-        User user = userRepository.findById(principal.getId()).get();
-        SquadDto dto = squadService.setSquad(squadId, squadDto, user.getId());
-        return ResponseEntity.ok(dto);
-    }
-
     @PostMapping
-    public ResponseEntity<?> createSquad(@AuthenticationPrincipal CustomPrincipal principal,
-                                         @RequestBody SquadDto squadDto) {
+    public ResponseEntity<?> create(@AuthenticationPrincipal CustomPrincipal principal,
+                                    @RequestBody SquadDto squadDto) {
         User user = userRepository.findById(principal.getId()).get();
         SquadDto dto = squadService.createSquad(user.getId(), squadDto);
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping
+    public ResponseEntity<?> read(@AuthenticationPrincipal CustomPrincipal principal) {
+        List<SquadDto> squads = squadService.getSquads(principal.getId());
+        return ResponseEntity.ok(squads);
+    }
+
     @GetMapping("/{squadId}")
-    public ResponseEntity<?> readSquad(@AuthenticationPrincipal CustomPrincipal principal,
-                                       @PathVariable Integer squadId) {
+    public ResponseEntity<?> read(@AuthenticationPrincipal CustomPrincipal principal,
+                                  @PathVariable Integer squadId) {
         User user = userRepository.findById(principal.getId()).get();
-        SquadDto s = squadService.getSquad(squadId, user.getId());
-        return ResponseEntity.ok(s);
+        Squad squad = squadRepository.findById(squadId).orElseThrow(() ->
+                new IllegalArgumentException("no such squad"));
+        if (squad.getUser().getId().equals(user.getId())) {
+            SquadDto currentSquad = squadService.getCurrentSquad(squad.getId());
+            return ResponseEntity.ok(currentSquad);
+        } else {
+            SquadDto lockedInSquad = squadService.getLockedInSquad(squad.getId());
+            return ResponseEntity.ok(lockedInSquad);
+        }
+    }
+
+    @PutMapping("/{squadId}")
+    public ResponseEntity<?> update(@AuthenticationPrincipal CustomPrincipal principal,
+                                    @PathVariable("squadId") Integer squadId,
+                                    @RequestBody SquadDto squadDto) {
+        User user = userRepository.findById(principal.getId()).get();
+        SquadDto dto = squadService.setSquad(squadId, squadDto, user.getId());
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{squadId}/history/{matchId}")
-    public ResponseEntity<?> getSquadHistory(@PathVariable Integer matchId,
-                                             @PathVariable Integer squadId) {
-        SquadDto squadDto = squadService.getSquadHistory(matchId, squadId);
+    public ResponseEntity<?> getHistory(@PathVariable Integer matchId,
+                                        @PathVariable Integer squadId) {
+        SquadDto squadDto = squadService.getLockedInSquad(squadId, matchId);
         return ResponseEntity.ok(squadDto);
     }
 }
