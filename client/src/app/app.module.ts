@@ -21,6 +21,7 @@ import {AuthInterceptor} from "./auth/auth.interceptor";
 import { LeagueComponent } from './league/league.component';
 import { SquadComponent } from './squad/squad.component';
 import { NewSquadComponent } from './new-squad/new-squad.component';
+import { TournamentComponent } from './tournament/tournament.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { NewSquadComponent } from './new-squad/new-squad.component';
     HomeComponent,
     LeagueComponent,
     SquadComponent,
-    NewSquadComponent
+    NewSquadComponent,
+    TournamentComponent
   ],
   imports: [
     BrowserModule,
@@ -53,6 +55,7 @@ import { NewSquadComponent } from './new-squad/new-squad.component';
       {path: 'leagues', component: LeaguesComponent, canActivate: [AuthGuard]},
       {path: 'leagues/:id', component: LeagueComponent, canActivate: [AuthGuard]},
       {path: 'tournaments', component: TournamentsComponent, canActivate: [AuthGuard]},
+      {path: 'tournaments/:id', component: TournamentComponent, canActivate: [AuthGuard]},
       {path: '', redirectTo: 'home', pathMatch: 'full'}
     ]),
   ],

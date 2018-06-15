@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-public class MatchDto {
+public class MatchDto implements Comparable<MatchDto> {
     private Integer id;
     private Integer tournamentId;
     private Timestamp scheduledStart;
@@ -20,4 +20,9 @@ public class MatchDto {
     private boolean lockedIn;
     private MatchResult result;
     private List<PlayerDto> performances;
+
+    @Override
+    public int compareTo(MatchDto o) {
+        return seqNum.compareTo(o.seqNum);
+    }
 }

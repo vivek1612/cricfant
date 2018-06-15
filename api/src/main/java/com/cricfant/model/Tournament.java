@@ -1,6 +1,7 @@
 package com.cricfant.model;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -17,6 +18,10 @@ public class Tournament {
     private String name;
 
     @Basic
+    @Column(name = "description", length = 120)
+    private String description;
+
+    @Basic
     @Column(name = "total_subs", nullable = false)
     private Integer totalSubs;
 
@@ -27,6 +32,18 @@ public class Tournament {
     @Basic
     @Column(name = "unlimited_subs", nullable = false)
     private Boolean unlimitedSubs;
+
+    @Basic
+    @Column(name = "start_date")
+    private Date startDate;
+
+    @Basic
+    @Column(name = "end_date")
+    private Date endDate;
+
+    @Basic
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     @Basic
     @Column(name = "squad_budget", nullable = false)
@@ -122,5 +139,37 @@ public class Tournament {
 
     public void setTournamentTeams(Set<TournamentTeam> tournamentTeamsById) {
         this.tournamentTeams = tournamentTeamsById;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

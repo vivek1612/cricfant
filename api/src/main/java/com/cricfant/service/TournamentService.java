@@ -1,11 +1,14 @@
 package com.cricfant.service;
 
 import com.cricfant.constant.PowerType;
+import com.cricfant.dto.MatchDto;
+import com.cricfant.dto.TournamentDto;
 import com.cricfant.model.*;
 import com.cricfant.repository.LockinRepository;
 import com.cricfant.repository.MatchPerfRepository;
 import com.cricfant.repository.TournamentRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,8 @@ import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -76,7 +81,7 @@ public class TournamentService {
         for (Lockin lockin : lockins) {
             MatchPerformance mp = matchPerfRepository.findByTournamentTeamPlayerIdAndMatchId(
                     lockin.getTournamentTeamPlayer().getId(), lockin.getMatch().getId());
-            if(mp==null){ // player did not play in match
+            if (mp == null) { // player did not play in match
                 continue;
             }
             Integer battingPoints = mp.getBattingPoints() == null ? 0 : mp.getBattingPoints();
@@ -93,5 +98,31 @@ public class TournamentService {
             totalPoints += battingPoints + bowlingPoints + fieldingPoints + bonusPoints;
         }
         return totalPoints;
+    }
+
+    public Set<TournamentDto> getAll() {
+        Set<Tournament> tournaments = tournamentRepository.findAllByActive(true);
+        Set<TournamentDto> dtos = tournaments.stream()
+                .map(tournament -> getFromTournament(tournament, false))
+                .collect(Collectors.toSet());
+        return dtos;
+    }
+
+    public TournamentDto get(Integer tournamentId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new IllegalArgumentException("no such tournament"));
+        return getFromTournament(tournament, true);
+    }
+
+    private TournamentDto getFromTournament(Tournament tournament, boolean withMatches) {
+        TournamentDto tournamentDto = new TournamentDto();
+        BeanUtils.copyProperties(tournament, tournamentDto,"matches");
+        if (withMatches) {
+            Set<MatchDto> matchDtos = tournament.getMatches().stream()
+                    .map(match -> matchService.getFromMatch(match))
+                    .collect(Collectors.toCollection(TreeSet::new));
+            tournamentDto.setMatches(matchDtos);
+        }
+        return tournamentDto;
     }
 }

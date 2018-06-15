@@ -22,5 +22,15 @@ export class ApiService {
     return this.http.get(this.API_BASE_URL + `/api/leagues/${leagueId}`);
   }
 
+  getLeagues(tournamentId:number){
+    return this.http.get(this.API_BASE_URL + `/api/leagues?tournamentId=${tournamentId}`);
+  }
 
+  getTournaments(){
+    return this.http.get(this.API_BASE_URL + '/api/tournaments');
+  }
+
+  getTournament(tournamentId:number){
+    return this.http.get(this.API_BASE_URL + `/api/tournaments/${tournamentId}`);
+  }
 }

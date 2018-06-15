@@ -12,6 +12,7 @@ import java.util.List;
 public class LeagueDto {
     private Integer id;
     private Integer tournamentId;
+    private String tournamentName;
     private String name;
     private Integer points;
     private LeagueType type;

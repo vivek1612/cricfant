@@ -9,3 +9,12 @@ body { margin: 0; }
 .symbol{
   font-family: symbols;
 }
+
+.mat-table{
+  width: 100%;
+}
+
+.filter{
+  margin-left: 20px;
+  margin-top: 10px;
+}

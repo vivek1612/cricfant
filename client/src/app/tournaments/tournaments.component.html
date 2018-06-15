@@ -1,3 +1,15 @@
-<p>
-  tournaments works!
-</p>
+<mat-card *ngFor="let tournament of tournaments$ | async">
+  <mat-card-title-group>
+    <mat-card-title>
+      <a routerLink="/tournaments/{{tournament.id}}">{{tournament.name}}
+      </a>
+    </mat-card-title>
+    <mat-card-subtitle>
+      <strong> {{tournament.name}}</strong>
+      <mat-divider [vertical]="true" [inset]="true"></mat-divider>
+      <strong>
+        {{tournament.startDate | date:'mediumDate'}} - {{tournament.endDate | date:'mediumDate'}}
+      </strong>
+    </mat-card-subtitle>
+  </mat-card-title-group>
+</mat-card>

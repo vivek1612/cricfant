@@ -570,7 +570,7 @@ public class MatchService {
         return null;
     }
 
-    private MatchDto getFromMatch(Match m) {
+    public MatchDto getFromMatch(Match m) {
         MatchDto mDto = new MatchDto();
         BeanUtils.copyProperties(m, mDto);
         mDto.setTournamentId(m.getTournament().getId());
@@ -583,7 +583,7 @@ public class MatchService {
         teams.add(team1);
         teams.add(team2);
         mDto.setTeams(teams);
-        List<PlayerDto> matchPerfDtos = new ArrayList<>();
+        /*List<PlayerDto> matchPerfDtos = new ArrayList<>();
         Collection<MatchPerformance> matchPerformances = m.getMatchPerformances();
         matchPerformances.forEach(mp -> {
             PlayerDto pDto = new PlayerDto();
@@ -598,7 +598,7 @@ public class MatchService {
             pDto.setPoints(pointsDto);
             matchPerfDtos.add(pDto);
         });
-        mDto.setPerformances(matchPerfDtos);
+        mDto.setPerformances(matchPerfDtos);*/
         return mDto;
     }
 }

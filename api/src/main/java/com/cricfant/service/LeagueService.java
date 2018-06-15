@@ -34,8 +34,8 @@ public class LeagueService {
     @Autowired
     UserRepository userRepository;
 
-    public List<LeagueDto> getLeagues(Integer tournamentId) {
-        List<League> leagues = leagueRepository.findAllByTournament_Id(tournamentId);
+    public List<LeagueDto> getLeagues() {
+        List<League> leagues = leagueRepository.findAll();
         List<LeagueDto> leagueDtos = leagues.stream()
                 .map(this::getFromLeague).collect(Collectors.toList());
         return leagueDtos;
@@ -53,6 +53,7 @@ public class LeagueService {
         l.setId(league.getId());
         l.setName(league.getName());
         l.setTournamentId(league.getTournament().getId());
+        l.setTournamentName(league.getTournament().getName());
         l.setPoints(league.getPoints());
         l.setType(league.getType());
         league.getAdmin().ifPresent(user -> l.setAdminName(user.getName()));

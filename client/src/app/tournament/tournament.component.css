@@ -1,0 +1,48 @@
+.matches{
+  width: 98%;
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.matches td{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  vertical-align: middle;
+}
+.match{
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+.num{
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  padding-right: 10px;
+}
+.calendar-container {
+  position: relative;
+  height: fit-content;
+  width: fit-content;
+  float: right;
+}
+
+.calendar-container header {
+  border-radius: 1em 1em 1em 1em;
+  background: #e66b6b;
+  color: #fff;
+  padding: .5em .5em;
+}
+
+.day {
+  font-size: 1em;
+  font-weight: 900;
+  line-height: 1em;
+  margin-bottom: 5px;
+}
+
+.time {
+  font-size: 2em;
+  line-height: 1em;
+  text-transform: lowercase;
+}

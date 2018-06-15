@@ -1,0 +1,32 @@
+<ng-template #isWait>
+  <h1>Please wait</h1>
+</ng-template>
+<mat-card *ngIf="waitService.wait$ | async; else isWait">
+  <mat-card-title-group>
+    <mat-card-title>
+      {{tournament.name}}
+    </mat-card-title>
+    <mat-card-subtitle>
+      <strong> {{tournament.description}}</strong>
+      <mat-divider [vertical]="true" [inset]="true"></mat-divider>
+      <strong>
+        {{tournament.startDate | date:'mediumDate'}} - {{tournament.endDate | date:'mediumDate'}}
+      </strong>
+    </mat-card-subtitle>
+  </mat-card-title-group>
+</mat-card>
+
+<table *ngIf="tournament.matches" class="matches">
+  <tr *ngFor="let match of tournament.matches">
+    <td><span class="num">{{match.seqNum}}</span></td>
+    <td><span class="match">{{match.teams[0].name}} vs {{match.teams[1].name}}</span></td>
+    <td><span class="calendar-container">
+          <header>
+            <div class="day">{{match.scheduledStart | date:'MMM d'}}</div>
+            <div class="time">{{match.scheduledStart | date:'shortTime'}}</div>
+          </header>
+        </span>
+    </td>
+  </tr>
+</table>
+
