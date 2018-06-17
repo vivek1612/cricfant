@@ -79,8 +79,9 @@ public class TournamentService {
         Set<Lockin> lockins = lockinRepository.findAllByMatchIdAndSquadId(match.getId(), squad.getId());
         Integer totalPoints = 0;
         for (Lockin lockin : lockins) {
+            TournamentTeamPlayer tournamentTeamPlayer = lockin.getTournamentTeamPlayer();
             MatchPerformance mp = matchPerfRepository.findByTournamentTeamPlayerIdAndMatchId(
-                    lockin.getTournamentTeamPlayer().getId(), lockin.getMatch().getId());
+                    tournamentTeamPlayer.getId(), lockin.getMatch().getId());
             if (mp == null) { // player did not play in match
                 continue;
             }
@@ -88,6 +89,8 @@ public class TournamentService {
             Integer bowlingPoints = mp.getBowlingPoints() == null ? 0 : mp.getBowlingPoints();
             Integer fieldingPoints = mp.getFieldingPoints() == null ? 0 : mp.getFieldingPoints();
             Integer bonusPoints = mp.getBonusPoints() == null ? 0 : mp.getBonusPoints();
+            int playerPoints = battingPoints + bowlingPoints + fieldingPoints + bonusPoints;
+            tournamentTeamPlayer.setPoints(tournamentTeamPlayer.getPoints() + playerPoints);
             PowerType powerType = lockin.getPowerType();
             battingPoints = (powerType != null && powerType.equals(PowerType.BATTING)) ? 2 * battingPoints : battingPoints;
             bowlingPoints = (powerType != null && powerType.equals(PowerType.BOWLING)) ? 2 * bowlingPoints : bowlingPoints;
@@ -119,7 +122,7 @@ public class TournamentService {
         BeanUtils.copyProperties(tournament, tournamentDto,"matches");
         if (withMatches) {
             Set<MatchDto> matchDtos = tournament.getMatches().stream()
-                    .map(match -> matchService.getFromMatch(match))
+                    .map(matchService::getFromMatch)
                     .collect(Collectors.toCollection(TreeSet::new));
             tournamentDto.setMatches(matchDtos);
         }

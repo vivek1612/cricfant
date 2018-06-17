@@ -1,0 +1,70 @@
+.jersey{
+    height: 85px;
+    background-image: url(https://s3.ap-south-1.amazonaws.com/fandromeda-v2/web/AUS-jersey.svg);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    text-align: center;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
+.skill{
+    color: #000;
+    font-size: 27px;
+    top: 0.1em;
+    position: relative;
+    left: 0.1em;
+}
+
+.wrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.price{
+    align-self: auto;
+    color: #000;
+}
+.team{
+    position: relative;
+    top: 0.7em;
+    color: #000;
+}
+.next{
+    margin-top: 2em;
+}
+.playerNames{
+    justify-items: center;
+}
+.playersTable tr{
+    cursor: pointer;
+}
+.filterSection {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-auto-rows: max(30px,auto);
+    align-items: end;
+}
+.filterButtons{
+    width: min-content;
+    height: 30px;
+    justify-self: center;
+}
+.mat-vertical-content-container {
+    margin-left: 0px;
+}
+td.mat-cell:last-child, td.mat-footer-cell:last-child, th.mat-header-cell:last-child, 
+td.mat-cell:first-child, td.mat-footer-cell:first-child, th.mat-header-cell:first-child {
+    padding-right: 0px;
+    padding-left: 0px;
+}
+.mat-column-totalPoints{
+    text-align: center;
+}
+.symbol.mat-icon{
+    font-size: 2em;
+}
+.mat-column-name{
+    padding-left: 10px;
+}

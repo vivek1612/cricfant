@@ -1,8 +1,10 @@
 package com.cricfant.controller;
 
+import com.cricfant.dto.MatchDto;
 import com.cricfant.dto.TournamentDto;
 import com.cricfant.model.Tournament;
 import com.cricfant.repository.TournamentRepository;
+import com.cricfant.service.MatchService;
 import com.cricfant.service.TournamentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,9 @@ public class TournamentController {
 
     @Autowired
     private TournamentService tournamentService;
+
+    @Autowired
+    private MatchService matchService;
 
     @Secured("ROLE_ADMIN")
     @PutMapping("/{tournamentId}/lockin")
@@ -44,5 +49,11 @@ public class TournamentController {
     public ResponseEntity<?> read(@PathVariable Integer tournamentId){
         TournamentDto tournamentDto = tournamentService.get(tournamentId);
         return ResponseEntity.ok(tournamentDto);
+    }
+
+    @GetMapping("/{tournamentId}/upcoming-matches")
+    public ResponseEntity<?> getUpcomingMatches(@PathVariable Integer tournamentId){
+        Set<MatchDto> upcomingMatches = matchService.getUpcomingMatches(tournamentId);
+        return ResponseEntity.ok(upcomingMatches);
     }
 }

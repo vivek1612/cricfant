@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from "@angular/common/http";
-import {environment} from "../../environments/environment";
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,27 +10,35 @@ export class ApiService {
   private API_BASE_URL = environment.API_BASE_URL;
   constructor(private http: HttpClient) { }
 
-  getSquads(){
-    return this.http.get(this.API_BASE_URL+"/api/squads");
+  getSquads() {
+    return this.http.get(this.API_BASE_URL + '/api/squads');
   }
 
-  getSquad(squadId:number){
+  getSquad(squadId: number) {
     return this.http.get(this.API_BASE_URL + `/api/squads/${squadId}`);
   }
 
-  getLeague(leagueId:number){
+  getLeague(leagueId: number) {
     return this.http.get(this.API_BASE_URL + `/api/leagues/${leagueId}`);
   }
 
-  getLeagues(tournamentId:number){
+  getLeagues(tournamentId: number) {
     return this.http.get(this.API_BASE_URL + `/api/leagues?tournamentId=${tournamentId}`);
   }
 
-  getTournaments(){
+  getTournaments() {
     return this.http.get(this.API_BASE_URL + '/api/tournaments');
   }
 
-  getTournament(tournamentId:number){
+  getTournament(tournamentId: number) {
     return this.http.get(this.API_BASE_URL + `/api/tournaments/${tournamentId}`);
+  }
+
+  getPlayers(tournamentId: number) {
+    return this.http.get(this.API_BASE_URL + `/api/players?tournamentId=${tournamentId}`);
+  }
+
+  getUpcomingMatches(tournamentId: number) {
+    return this.http.get(this.API_BASE_URL + `/api/tournaments/${tournamentId}/upcoming-matches`);
   }
 }

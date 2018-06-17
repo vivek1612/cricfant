@@ -22,6 +22,10 @@ public class TournamentTeamPlayer {
     @Column(name = "price", nullable = false)
     private Integer price;
 
+    @Basic
+    @Column(name = "points", nullable = false)
+    private Integer points;
+
     @OneToMany(mappedBy = "tournamentTeamPlayer")
     private Set<Lockin> lockins;
 
@@ -31,7 +35,7 @@ public class TournamentTeamPlayer {
     @OneToMany(mappedBy = "tournamentTeamPlayer")
     private Set<SquadPlayer> squadPlayers;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "player_id", referencedColumnName = "id", nullable = false)
     private Player player;
 
@@ -101,5 +105,13 @@ public class TournamentTeamPlayer {
 
     public void setTournamentTeam(TournamentTeam tournamentTeamByTournamentTeamId) {
         this.tournamentTeam = tournamentTeamByTournamentTeamId;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 }

@@ -3,12 +3,9 @@ package com.cricfant.service;
 import com.cricfant.constant.Dismissal;
 import com.cricfant.constant.MatchResult;
 import com.cricfant.dto.MatchDto;
-import com.cricfant.dto.PlayerDto;
-import com.cricfant.dto.PointsDto;
 import com.cricfant.dto.TeamDto;
 import com.cricfant.model.Match;
 import com.cricfant.model.MatchPerformance;
-import com.cricfant.model.Tournament;
 import com.cricfant.model.TournamentTeamPlayer;
 import com.cricfant.repository.MatchPerfRepository;
 import com.cricfant.repository.MatchRepository;
@@ -56,35 +53,28 @@ public class MatchService {
     private static final Pattern bowledPattern = Pattern.compile("^b (.*)$");
 
     public Optional<Match> getNextMatch(Integer tournamentId) {
-        // TODO optimize query
-        Tournament tournament = tournamentRepository.findById(tournamentId).get();
-        List<Match> matches = tournament.getMatches().stream()
-                .filter(match -> !match.getLockedIn())
-                .sorted(Comparator.comparingInt(Match::getSeqNum))
-                .collect(Collectors.toList());
-        if (matches.size() == 0) {
-            return Optional.empty();
-        }
-        return Optional.of(matches.get(0));
+        Match nextMatch = matchRepository
+                .findTopByTournamentIdAndLockedInIsFalseOrderBySeqNum(tournamentId);
+        return Optional.of(nextMatch);
     }
 
     public Optional<Match> getLastMatch(Integer tournamentId) {
-        // TODO optimize query
-        Tournament tournament = tournamentRepository.findById(tournamentId).get();
-        List<Match> matches = tournament.getMatches().stream()
-                .filter(match -> match.getLockedIn())
-                .sorted(Comparator.comparingInt(Match::getSeqNum))
-                .collect(Collectors.toList());
-        if (matches.size() == 0) {
-            return Optional.empty();
-        }
-        return Optional.of(matches.get(matches.size() - 1));
+        Match nextMatch = matchRepository.findTopByTournamentIdAndLockedInIsTrueOrderBySeqNumDesc(tournamentId);
+        return Optional.of(nextMatch);
     }
 
     public MatchDto processScoresForMatch(String url, Integer matchId) throws IOException {
         Match m = matchRepository.findById(matchId).get();
         List<MatchPerformance> matchPerformances = getMatchPerfs(url, m);
         calculatePoints(matchPerformances);
+        matchPerformances.stream().forEach(matchPerformance -> {
+            matchPerformance.getTournamentTeamPlayer().setPoints(
+                    matchPerformance.getBattingPoints()
+                            + matchPerformance.getBowlingPoints()
+                            + matchPerformance.getFieldingPoints()
+                            + matchPerformance.getBonusPoints()
+            );
+        });
         Set<MatchPerformance> existingPerfs = matchPerfRepository.findAllByMatchId(matchId);
         matchPerfRepository.deleteAll(existingPerfs);
         matchPerfRepository.flush();
@@ -600,5 +590,12 @@ public class MatchService {
         });
         mDto.setPerformances(matchPerfDtos);*/
         return mDto;
+    }
+
+    public Set<MatchDto> getUpcomingMatches(Integer tournamentId) {
+        Set<Match> upcomingMatches = matchRepository.findTop5ByTournamentIdAndLockedInFalseOrderBySeqNum(tournamentId);
+        return upcomingMatches.stream()
+                .map(this::getFromMatch)
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 }

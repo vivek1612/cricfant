@@ -16,12 +16,13 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {AuthGuard} from './auth/auth.guard';
 import { AccountOpsComponent } from './account-ops/account-ops.component';
 import { HomeComponent } from './home/home.component';
-import {AuthService} from "./auth/auth.service";
-import {AuthInterceptor} from "./auth/auth.interceptor";
+import {AuthService} from './auth/auth.service';
+import {AuthInterceptor} from './auth/auth.interceptor';
 import { LeagueComponent } from './league/league.component';
 import { SquadComponent } from './squad/squad.component';
 import { NewSquadComponent } from './new-squad/new-squad.component';
 import { TournamentComponent } from './tournament/tournament.component';
+import { PricePipe } from './price.pipe';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { TournamentComponent } from './tournament/tournament.component';
     LeagueComponent,
     SquadComponent,
     NewSquadComponent,
-    TournamentComponent
+    TournamentComponent,
+    PricePipe
   ],
   imports: [
     BrowserModule,
